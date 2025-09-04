@@ -1,0 +1,2028 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>매입송장 처리 - ERP RPA 대시보드</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+      background-color: #f9fcff;
+      padding: 40px;
+      color: #2c3e50;
+      transition: background-color 0.3s ease;
+      margin: 0;
+    }
+    .container {
+      max-width: 1440px;
+      margin: auto;
+    }
+    .section {
+      margin-bottom: 30px;
+      padding: 24px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      transition: box-shadow 0.2s ease-in-out, transform 0.2s;
+    }
+    .section:hover {
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+      transform: translateY(-2px);
+    }
+    .input-group {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+    .input-group h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    .form-row {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+    .form-row label {
+      min-width: 120px;
+      font-weight: bold;
+      color: #333;
+    }
+    .form-row input, .form-row select {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      min-width: 200px;
+    }
+    .form-row input:focus, .form-row select:focus {
+      border-color: #2980b9;
+      outline: none;
+      box-shadow: 0 0 5px rgba(41, 128, 185, 0.4);
+    }
+    .button-group {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .button-group button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+    .btn-primary {
+      background-color: #2980b9;
+      color: white;
+    }
+    .btn-primary:hover {
+      background-color: #1c6692;
+    }
+    .btn-success {
+      background-color: #27ae60;
+      color: white;
+    }
+    .btn-success:hover {
+      background-color: #1e8449;
+    }
+    .btn-secondary {
+      background-color: #7f8c8d;
+      color: white;
+    }
+    .btn-secondary:hover {
+      background-color: #5d6d6e;
+    }
+    .file-list {
+      margin-top: 20px;
+    }
+    .file-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      background: white;
+    }
+    .file-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .file-icon {
+      font-size: 20px;
+    }
+    .file-name {
+      font-weight: 500;
+    }
+    .file-size {
+      color: #666;
+      font-size: 12px;
+    }
+    .file-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .file-actions button {
+      padding: 4px 8px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .btn-remove {
+      background-color: #e74c3c;
+      color: white;
+    }
+    .btn-remove:hover {
+      background-color: #c0392b;
+    }
+    .status-indicator {
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    .status-pending {
+      background: #f39c12;
+      color: white;
+    }
+    .status-processing {
+      background: #3498db;
+      color: white;
+    }
+    .status-completed {
+      background: #27ae60;
+      color: white;
+    }
+    .status-error {
+      background: #e74c3c;
+      color: white;
+    }
+    .progress-section {
+      margin-top: 30px;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background-color: #ecf0f1;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .progress-fill {
+      height: 100%;
+      background-color: #2980b9;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .progress-text {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    /* 사이드바 네비게이션 스타일 */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 250px;
+      height: 100vh;
+      background: #ffffff;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+      z-index: 999;
+      padding: 20px 0;
+      transition: all 0.3s ease;
+    }    .sidebar-header {
+      padding: 0 20px 30px;
+      border-bottom: 1px solid #e0e0e0;
+      margin-bottom: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }    .sidebar-logo {
+      width: 99.45%;
+      aspect-ratio: 1;
+      margin-bottom: 15px;
+      border-radius: 12px;
+      object-fit: cover;
+    }    .sidebar-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #2c3e50;
+      margin: 0;
+    }
+
+    .sidebar-subtitle {
+      font-size: 11px;
+      color: #7f8c8d;
+      margin-top: 8px;
+      font-weight: 400;
+      text-align: center;
+      opacity: 0.8;
+    }
+
+    .sidebar-nav {
+      padding: 0 10px;
+    }
+
+    .nav-item {
+      display: block;
+      padding: 15px 20px;
+      margin-bottom: 5px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: #666;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .nav-item:hover {
+      background: #f0f5ff;
+      color: #2980b9;
+      text-decoration: none;
+    }
+
+    .nav-item.active {
+      background: #2980b9;
+      color: white;
+    }
+
+    .nav-item.active:hover {
+      background: #1c6692;
+    }
+
+    .nav-icon {
+      margin-right: 12px;
+      font-size: 16px;
+    }
+
+    /* 메인 컨텐츠 영역 조정 */
+    .main-content {
+      margin-left: 250px;
+      transition: margin-left 0.3s ease;
+    }    /* 스크린 캡처 버튼 스타일 */
+    .screen-capture-btn {
+      position: fixed;
+      top: 20px;
+      right: 80px; /* 다크모드 버튼 왼쪽에 위치 */
+      background: #27ae60;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+      z-index: 1001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .screen-capture-btn:hover {
+      background: #219a52;
+      transform: scale(1.1);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .screen-capture-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* 다크모드 토글 버튼 스타일 */
+    .dark-mode-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #2980b9;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+      z-index: 1001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dark-mode-toggle:hover {
+      background: #1c6692;
+      transform: scale(1.1);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    /* 다크모드 스타일 */
+    body.dark-mode {
+      background-color: #1a1a1a;
+      background-image: none;
+      color: #e0e0e0;
+    }
+
+    body.dark-mode .section {
+      background: #2d2d2d;
+      color: #e0e0e0;
+      border: 1px solid #404040;
+    }
+
+    body.dark-mode .input-group {
+      background-color: #3a3a3a;
+      border: 1px solid #555;
+    }
+
+    body.dark-mode .input-group h3,
+    body.dark-mode .form-row label,
+    body.dark-mode h2,
+    body.dark-mode h3 {
+      color: #e0e0e0 !important;
+    }
+
+    body.dark-mode .form-row input,
+    body.dark-mode .form-row select {
+      background: #404040;
+      color: #e0e0e0;
+      border: 1px solid #555;
+    }
+
+    body.dark-mode .form-row input:focus,
+    body.dark-mode .form-row select:focus {
+      border-color: #4a9eff;
+      box-shadow: 0 0 5px rgba(74, 158, 255, 0.4);
+    }
+
+    body.dark-mode .file-item {
+      background: #404040;
+      border-color: #555;
+      color: #e0e0e0;
+    }
+
+    body.dark-mode .progress-bar {
+      background-color: #404040;
+    }
+
+    body.dark-mode .progress-text {
+      color: #b0b0b0;
+    }
+
+    /* 사이드바 다크모드 스타일 */
+    body.dark-mode .sidebar {
+      background: #2d2d2d;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+    }
+
+    body.dark-mode .sidebar-header {
+      border-bottom: 1px solid #404040;
+    }    body.dark-mode .sidebar-title {
+      color: #e0e0e0;
+    }
+
+    body.dark-mode .sidebar-subtitle {
+      color: #95a5a6;
+    }
+
+    body.dark-mode .nav-item {
+      color: #b0b0b0;
+    }
+
+    body.dark-mode .nav-item:hover {
+      background: #404040;
+      color: #4a9eff;
+    }
+
+    body.dark-mode .nav-item.active {
+      background: #4a9eff;
+      color: white;
+    }
+
+    body.dark-mode .nav-item.active:hover {
+      background: #357abd;
+    }    body.dark-mode .dark-mode-toggle {
+      background: #f39c12;
+    }
+
+    body.dark-mode .dark-mode-toggle:hover {
+      background: #e67e22;
+    }
+
+    /* 다크모드에서 스크린 캡처 버튼 스타일 */
+    body.dark-mode .screen-capture-btn {
+      background: #e67e22;
+    }
+
+    body.dark-mode .screen-capture-btn:hover {
+      background: #d35400;
+    }
+
+    /* 플레이스홀더 텍스트 다크모드 */
+    body.dark-mode input::placeholder {
+      color: #999 !important;
+    }
+
+    body.dark-mode input::-webkit-input-placeholder {
+      color: #999 !important;
+    }
+
+    body.dark-mode input::-moz-placeholder {
+      color: #999 !important;
+    }    body.dark-mode input:-ms-input-placeholder {
+      color: #999 !important;
+    }
+
+    /* 단계별 처리 상세 스타일 */
+    .step-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 15px;
+      margin-bottom: 8px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      background: white;
+      transition: all 0.3s ease;
+    }
+
+    .step-number {
+      font-weight: bold;
+      min-width: 60px;
+      color: #2980b9;
+    }
+
+    .step-name {
+      flex: 1;
+      margin: 0 15px;
+      color: #333;
+    }
+
+    .step-status {
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .step-status.waiting {
+      background: #f8f9fa;
+      color: #6c757d;
+    }
+
+    .step-status.processing {
+      background: #3498db;
+      color: white;
+      animation: pulse 1.5s infinite;
+    }
+
+    .step-status.completed {
+      background: #27ae60;
+      color: white;
+    }
+
+    .step-status.failed {
+      background: #e74c3c;
+      color: white;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
+    /* 다크모드 단계별 처리 스타일 */
+    body.dark-mode .step-item {
+      background: #404040;
+      border-color: #555;
+    }
+
+    body.dark-mode .step-name {
+      color: #e0e0e0;
+    }
+
+    body.dark-mode .step-number {
+      color: #4a9eff;
+    }
+
+    body.dark-mode .step-status.waiting {
+      background: #495057;
+      color: #adb5bd;
+    }
+
+    /* 섹션 헤더 레이아웃 스타일 */
+    .section-header-with-button {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+    }
+
+    .section-header-content {
+      flex: 1;
+    }
+
+    .section-header-actions {
+      flex-shrink: 0;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-top: 5px;
+    }
+
+    /* 다중모드 처리 결과 스타일 */
+    .group-result {
+      margin-bottom: 20px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      background: #f8f9fa;
+      overflow: hidden;
+    }
+
+    .group-header {
+      background: #2980b9;
+      color: white;
+      padding: 12px 16px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .group-header.success {
+      background: #27ae60;
+    }
+
+    .group-header.failed {
+      background: #e74c3c;
+    }
+
+    .group-header.processing {
+      background: #3498db;
+      animation: pulse 1.5s infinite;
+    }
+
+    .group-body {
+      padding: 15px;
+    }
+
+    .group-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 8px;
+    }
+
+    .group-step {
+      display: flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 4px;
+      background: white;
+      border: 1px solid #dee2e6;
+      font-size: 13px;
+    }
+
+    .group-step-number {
+      font-weight: bold;
+      min-width: 50px;
+      color: #495057;
+    }
+
+    .group-step-name {
+      flex: 1;
+      margin-right: 10px;
+      color: #333;
+    }
+
+    .group-step-status {
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 8px;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .group-step-status.completed {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .group-step-status.failed {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .group-step-status.processing {
+      background: #cce7ff;
+      color: #004085;
+      animation: pulse 1.5s infinite;
+    }
+
+    .group-step-status.waiting {
+      background: #f8f9fa;
+      color: #6c757d;
+    }
+
+    /* 다크모드 다중모드 처리 결과 스타일 */
+    body.dark-mode .group-result {
+      border-color: #555;
+      background: #404040;
+    }
+
+    body.dark-mode .group-body {
+      background: #404040;
+    }
+
+    body.dark-mode .group-step {
+      background: #2d2d2d;
+      border-color: #555;
+    }
+
+    body.dark-mode .group-step-name {
+      color: #e0e0e0;
+    }
+
+    body.dark-mode .group-step-number {
+      color: #adb5bd;
+    }
+
+    body.dark-mode .group-step-status.completed {
+      background: #1e7e34;
+      color: #d4edda;
+    }
+
+    body.dark-mode .group-step-status.failed {
+      background: #c82333;
+      color: #f8d7da;
+    }
+
+    body.dark-mode .group-step-status.processing {
+      background: #0056b3;
+      color: #cce7ff;
+    }
+
+    body.dark-mode .group-step-status.waiting {
+      background: #495057;
+      color: #adb5bd;
+    }
+
+    /* RPA 실행 버튼 스타일 */
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .process-btn {
+      background: linear-gradient(135deg, #27ae60, #2ecc71);
+      color: white;
+    }
+
+    .process-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, #229954, #27ae60);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .process-btn:disabled {
+      background: #bdc3c7;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .btn-icon {
+      font-size: 12px;
+    }
+
+    /* 다크 모드용 RPA 실행 버튼 스타일 */
+    body.dark-mode .process-btn {
+      background: linear-gradient(135deg, #1e7e34, #28a745);
+    }
+
+    body.dark-mode .process-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, #155724, #1e7e34);
+    }
+
+    body.dark-mode .process-btn:disabled {
+      background: #495057;
+    }
+
+    /* single-input 스타일 */
+    .single-input {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 10px;
+    }
+    
+    .single-input label {
+      min-width: 120px;
+      font-weight: bold;
+      color: #333;
+    }
+    
+    .single-input input {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    
+    .single-input input:focus {
+      border-color: #2980b9;
+      outline: none;
+      box-shadow: 0 0 5px rgba(41, 128, 185, 0.4);
+    }
+    
+    /* 다크모드에서 single-input 스타일 */
+    body.dark-mode .single-input label {
+      color: #e0e0e0 !important;
+    }
+    
+    body.dark-mode .single-input input {
+      background: #404040;
+      color: #e0e0e0;
+      border: 1px solid #555;
+    }
+    
+    body.dark-mode .single-input input:focus {
+      border-color: #4a9eff;
+      box-shadow: 0 0 5px rgba(74, 158, 255, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <!-- 로그인 모듈 스크립트 로드 -->
+  <script src="login-module.js"></script>  <!-- 사이드바 네비게이션 -->  <div class="sidebar">
+    <div class="sidebar-header">
+      <img src="ERP_RPA아이콘.png" alt="ERP RPA" class="sidebar-logo">
+    <div class="sidebar-title">ERP RPA SYSTEM - Ark</div>
+    <div class="sidebar-subtitle" style="font-size:12px; font-weight:400; margin-top:4px;">
+      <span style="color:#2980b9; font-weight:600;">HyperAutomation</span> <span style="opacity:0.7;">| Rev. 2025.06.28</span>
+    </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="index.html" class="nav-item" id="nav-voucher">
+        <span class="nav-icon">📋</span>
+        1. 회계 전표 상신
+      </a>
+      <a href="index2.html" class="nav-item active" id="nav-invoice">
+        <span class="nav-icon">📄</span>
+        2. 매입송장 상신
+      </a>    </nav>
+  </div>
+
+  <!-- 메인 컨텐츠 -->
+  <div class="main-content">
+    <!-- 스크린 캡처 버튼 -->
+    <button class="screen-capture-btn" onclick="captureFullPage()" title="전체 페이지 스크린샷">
+      <span id="captureIcon">📷</span>
+    </button>
+    
+    <!-- 다크모드 토글 버튼 -->
+    <button class="dark-mode-toggle" onclick="toggleDarkMode()" title="다크모드 전환">
+      <span id="darkModeIcon">🌙</span>
+    </button>
+    
+    <div class="container"><!-- 페이지 헤더 -->
+      <div class="section">
+        <h2>📄 매입송장 처리</h2>
+        <p>매입송장 자동 처리를 진행합니다.</p>        <!-- A열 값 (valueA) 설정 섹션 -->
+        <div class="input-group">
+          <h3>단일 & 다중 모드 선택</h3>
+          
+          <!-- 단일 값 입력 -->
+          <div class="single-input">
+            <label for="valueAInput">단일 모드(Group Number) :</label>
+            <input type="number" id="valueAInput" placeholder="예: 3" value="3" min="1" max="99" style="width: 100px;">
+            <button id="executeWithValueABtn" onclick="executeWithValueA()" class="action-btn process-btn" disabled>
+              <span class="btn-icon">🎯</span> 단일 모드 RPA 실행
+            </button>
+          </div>
+          
+          <!-- 다중 값 입력 --> 
+          <div class="single-input" style="margin-top: 15px;">
+            <label for="multipleValueAInput">다중 모드(Group Number) :</label>
+            <input type="text" id="multipleValueAInput" placeholder="예: 1,2,3,5 또는 1~5" style="width: 200px;">
+            <button id="executeMultipleValueABtn" onclick="executeMultipleValueA()" class="action-btn process-btn" disabled>
+              <span class="btn-icon">🔄</span> 다중 모드 RPA 실행
+            </button>
+          </div>
+          
+          <!-- 사용 가이드 -->
+          <div style="margin-top: 10px; font-size: 12px; color: #666;">
+            💡 <strong>사용 가이드:</strong> 단일 값은 하나의 A열 값만, 다중 값은 쉼표(1,2,3) 또는 범위(1~3) 형식으로 입력
+          </div>
+        </div>
+        
+      </div>
+
+
+      <!-- 결과 확인 -->
+      <div class="section">
+        <h3>📊 처리 결과</h3>
+        <div class="input-group">
+          <h3>처리 통계</h3>
+          <div class="form-row">
+            <label>총 처리 작업:</label>
+            <span id="totalFiles">0</span>
+          </div>
+          <div class="form-row">
+            <label>처리 완료:</label>
+            <span id="completedFiles">0</span>
+          </div>
+          <div class="form-row">
+            <label>처리 실패:</label>
+            <span id="failedFiles">0</span>
+          </div>
+          <div class="form-row">
+            <label>성공률:</label>
+            <span id="successRate">0%</span>
+          </div>
+        </div>
+
+        <!-- 단계별 처리 상세 (단일모드) -->
+        <div class="input-group" id="stepDetailsGroup" style="display: none;">
+          <h3>단계별 처리 상세 (단일모드)</h3>
+          <div id="stepDetails">
+            <div class="step-item" id="step1">
+              <span class="step-number">1단계:</span>
+              <span class="step-name">ERP 접속 및 로그인</span>
+              <span class="step-status" id="step1Status">⏳ 대기중</span>
+            </div>
+            <div class="step-item" id="step2">
+              <span class="step-number">2단계:</span>
+              <span class="step-name">구매 입고내역 조회</span>
+              <span class="step-status" id="step2Status">⏳ 대기중</span>
+            </div>
+            <div class="step-item" id="step3">
+              <span class="step-number">3단계:</span>
+              <span class="step-name">엑셀 파일 열기 및 매크로 실행</span>
+              <span class="step-status" id="step3Status">⏳ 대기중</span>
+            </div>
+            <div class="step-item" id="step4">
+              <span class="step-number">4단계:</span>
+              <span class="step-name">기초원가공급사 메뉴 이동</span>
+              <span class="step-status" id="step4Status">⏳ 대기중</span>
+            </div>
+            <div class="step-item" id="step5">
+              <span class="step-number">5단계:</span>
+              <span class="step-name">캘린더 버튼 클릭 및 송장 처리</span>
+              <span class="step-status" id="step5Status">⏳ 대기중</span>
+            </div>
+            <div class="step-item" id="step6">
+              <span class="step-number">6단계:</span>
+              <span class="step-name">대기중인 공급사송장 메뉴 이동</span>
+              <span class="step-status" id="step6Status">⏳ 대기중</span>
+            </div>
+            <div class="step-item" id="step7">
+              <span class="step-number">7단계:</span>
+              <span class="step-name">그룹웨어 상신</span>
+              <span class="step-status" id="step7Status">⏳ 대기중</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 다중모드 처리 결과 -->
+        <div class="input-group" id="multipleResultsGroup" style="display: none;">
+          <h3>다중모드 처리 결과</h3>
+          <div id="multipleResults"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 파일 관리
+    // 전체 페이지 스크린 캡처 함수
+    async function captureFullPage() {
+      const captureBtn = document.querySelector('.screen-capture-btn');
+      const captureIcon = document.getElementById('captureIcon');
+      
+      // 버튼 상태 변경
+      const originalIcon = captureIcon.textContent;
+      captureIcon.textContent = '⏳';
+      captureBtn.disabled = true;
+      captureBtn.style.opacity = '0.7';
+      
+      try {
+        console.log('전체 페이지 스크린 캡처 시작');
+        
+        if (window.electronAPI && window.electronAPI.captureFullPage) {
+          // Electron 환경에서 실행
+          const result = await window.electronAPI.captureFullPage();
+          
+          if (result.success) {
+            // 성공 시 잠깐 체크 아이콘 표시
+            captureIcon.textContent = '✅';
+            
+            // 상세한 성공 메시지 표시
+            const message = result.message || '전체 페이지 스크린샷이 저장되었습니다!';
+            const dimensions = result.dimensions;
+            let detailMsg = `${message}\n\n경로: ${result.path}`;
+            
+            if (dimensions) {
+              detailMsg += `\n크기: ${dimensions.width}x${dimensions.height}px`;
+              if (dimensions.steps) {
+                detailMsg += `\n캡처 단계: ${dimensions.steps}단계`;
+              }
+              if (dimensions.scalingFactor) {
+                detailMsg += `\n스케일링: ${dimensions.scalingFactor.toFixed(2)}x`;
+              }
+            }
+            
+            alert(detailMsg);
+            
+            setTimeout(() => {
+              captureIcon.textContent = originalIcon;
+            }, 2000);
+          } else {
+            captureIcon.textContent = '❌';
+            alert('스크린샷 저장 실패: ' + (result.error || '알 수 없는 오류'));
+            setTimeout(() => {
+              captureIcon.textContent = originalIcon;
+            }, 2000);
+          }
+        } else if (window.electron && window.electron.ipcRenderer) {
+          // 호환성을 위한 fallback
+          const result = await window.electron.ipcRenderer.invoke('capture-full-page');
+          
+          if (result.success) {
+            captureIcon.textContent = '✅';
+            const message = result.message || '전체 페이지 스크린샷이 저장되었습니다!';
+            alert(`${message}\n경로: ${result.path}`);
+            setTimeout(() => {
+              captureIcon.textContent = originalIcon;
+            }, 2000);
+          } else {
+            captureIcon.textContent = '❌';
+            alert('스크린샷 저장 실패: ' + (result.error || '알 수 없는 오류'));
+            setTimeout(() => {
+              captureIcon.textContent = originalIcon;
+            }, 2000);
+          }
+        } else {
+          // 브라우저 환경에서는 html2canvas 사용
+          await captureWithHtml2Canvas();
+        }
+        
+      } catch (error) {
+        console.error('스크린 캡처 오류:', error);
+        captureIcon.textContent = '❌';
+        alert('스크린 캡처 중 오류 발생: ' + error.message);
+        setTimeout(() => {
+          captureIcon.textContent = originalIcon;
+        }, 2000);
+      } finally {
+        // 버튼 상태 복원
+        captureBtn.disabled = false;
+        captureBtn.style.opacity = '1';
+      }
+    }// 브라우저 환경에서 html2canvas를 사용한 전체 페이지 캡처
+    async function captureWithHtml2Canvas() {
+      try {
+        // html2canvas 라이브러리가 로드되어 있는지 확인
+        if (typeof html2canvas === 'undefined') {
+          // html2canvas 동적 로드
+          const script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+          document.head.appendChild(script);
+          
+          await new Promise((resolve, reject) => {
+            script.onload = resolve;
+            script.onerror = reject;
+          });
+        }
+        
+        // 현재 스크롤 위치 저장
+        const originalScrollX = window.scrollX;
+        const originalScrollY = window.scrollY;
+        
+        // 페이지를 맨 위로 스크롤
+        window.scrollTo(0, 0);
+        
+        // 전체 페이지 캡처 (스크롤 영역 포함)
+        const canvas = await html2canvas(document.body, {
+          height: document.body.scrollHeight,
+          width: document.body.scrollWidth,
+          useCORS: true,
+          scale: 1,
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: document.body.scrollWidth,
+          windowHeight: document.body.scrollHeight
+        });
+        
+        // 원래 스크롤 위치로 복원
+        window.scrollTo(originalScrollX, originalScrollY);
+        
+        // 파일명 생성
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+        const fileName = `screenshot_${timestamp}.png`;
+        
+        // 이미지 다운로드
+        const link = document.createElement('a');
+        link.download = fileName;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        
+        // 성공 메시지
+        const captureIcon = document.getElementById('captureIcon');
+        captureIcon.textContent = '✅';
+        setTimeout(() => {
+          captureIcon.textContent = '📷';
+        }, 1500);
+        
+        alert(`전체 페이지 스크린샷이 다운로드되었습니다!\n파일명: ${fileName}\n크기: ${canvas.width}x${canvas.height}px`);
+        
+      } catch (error) {
+        throw new Error('브라우저 전체 페이지 캡처 실패: ' + error.message);
+      }
+    }
+
+    // 다크모드 토글 함수
+    function toggleDarkMode() {
+      const body = document.body;
+      const darkModeIcon = document.getElementById('darkModeIcon');
+      
+      body.classList.toggle('dark-mode');
+      
+      // 아이콘 변경
+      if (body.classList.contains('dark-mode')) {
+        darkModeIcon.textContent = '☀️';
+        localStorage.setItem('darkMode', 'enabled');
+      } else {
+        darkModeIcon.textContent = '🌙';
+        localStorage.setItem('darkMode', 'disabled');
+      }
+    }
+
+    // 페이지 로드 시 다크모드 설정 복원
+    function initializeDarkMode() {
+      const darkMode = localStorage.getItem('darkMode');
+      const body = document.body;
+      const darkModeIcon = document.getElementById('darkModeIcon');
+      
+      if (darkMode === 'enabled') {
+        body.classList.add('dark-mode');
+        darkModeIcon.textContent = '☀️';
+      } else {
+        darkModeIcon.textContent = '🌙';
+      }
+    }
+
+    // 결과 다운로드
+    function downloadResults() {
+      // 로그인 상태 확인
+      if (!isLoggedIn()) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+      alert('결과 파일을 다운로드합니다.');
+    }
+
+    // 결과 보기
+    function viewResults() {
+      // 로그인 상태 확인
+      if (!isLoggedIn()) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+      alert('처리 결과를 확인합니다.');
+    }
+
+    // 보고서 내보내기
+    function exportReport() {
+      // 로그인 상태 확인
+      if (!isLoggedIn()) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+      alert('처리 보고서를 내보냅니다.');
+    }    // 버튼 상태 업데이트 함수 (로그인 상태에 따라)
+    function updateButtonStates() {
+      const buttons = document.querySelectorAll('.btn-primary, .btn-success, .btn-secondary, .process-btn');
+      const isUserLoggedIn = isLoggedIn();
+      
+      console.log('updateButtonStates 호출됨. 로그인 상태:', isUserLoggedIn);
+      
+      // A열 값으로 RPA 실행 버튼 특별 처리
+      const executeWithValueABtn = document.getElementById('executeWithValueABtn');
+      if (executeWithValueABtn) {
+        console.log('executeWithValueABtn 상태 업데이트:', isUserLoggedIn);
+        executeWithValueABtn.disabled = !isUserLoggedIn;
+        if (!isUserLoggedIn) {
+          executeWithValueABtn.style.opacity = '0.5';
+          executeWithValueABtn.title = '로그인이 필요합니다';
+        } else {
+          executeWithValueABtn.style.opacity = '1';
+          executeWithValueABtn.title = '';
+        }
+      }
+      
+      // 다중 A열 값으로 RPA 실행 버튼 특별 처리
+      const executeMultipleValueABtn = document.getElementById('executeMultipleValueABtn');
+      if (executeMultipleValueABtn) {
+        console.log('executeMultipleValueABtn 상태 업데이트:', isUserLoggedIn);
+        executeMultipleValueABtn.disabled = !isUserLoggedIn;
+        if (!isUserLoggedIn) {
+          executeMultipleValueABtn.style.opacity = '0.5';
+          executeMultipleValueABtn.title = '로그인이 필요합니다';
+        } else {
+          executeMultipleValueABtn.style.opacity = '1';
+          executeMultipleValueABtn.title = '';
+        }
+      }
+      
+      // 진행 버튼 특별 처리
+      const processInvoiceBtn = document.getElementById('processInvoiceBtn');
+      if (processInvoiceBtn) {
+        console.log('processInvoiceBtn 상태 업데이트:', isUserLoggedIn);
+        processInvoiceBtn.disabled = !isUserLoggedIn;
+        if (!isUserLoggedIn) {
+          processInvoiceBtn.style.opacity = '0.5';
+          processInvoiceBtn.title = '로그인이 필요합니다';
+        } else {
+          processInvoiceBtn.style.opacity = '1';
+          processInvoiceBtn.title = '';
+        }
+      }
+      
+      // 다른 버튼들 처리
+      buttons.forEach(button => {
+        if (button.id !== 'processInvoiceBtn' && button.id !== 'executeWithValueABtn' && button.id !== 'executeMultipleValueABtn') { // 이미 처리된 버튼들 제외
+          const shouldUpdate = (
+            (button.onclick && (
+              button.onclick.toString().includes('uploadFiles') ||
+              button.onclick.toString().includes('startProcessing') ||
+              button.onclick.toString().includes('downloadResults') ||
+              button.onclick.toString().includes('viewResults') ||
+              button.onclick.toString().includes('exportReport') ||
+              button.onclick.toString().includes('executeRPA')
+            ))
+          );
+          
+          if (shouldUpdate) {
+            console.log('버튼 업데이트:', button.id || button.className, '로그인 상태:', isUserLoggedIn);
+            button.disabled = !isUserLoggedIn;
+            if (!isUserLoggedIn) {
+              button.style.opacity = '0.5';
+              button.title = '로그인이 필요합니다';
+            } else {
+              button.style.opacity = '1';
+              button.title = '';
+            }
+          }
+        }
+      });    }    // RPA 실행 함수
+    async function executeRPA() {
+      console.log('=== RPA 실행 시작 ===');
+      console.log('executeRPA 함수가 호출되었습니다!');
+      
+      // 로그인 상태 확인 (여러 방법으로 시도)
+      let loginStatus = false;
+      
+      if (typeof window.isLoggedIn === 'function') {
+        loginStatus = window.isLoggedIn();
+        console.log('window.isLoggedIn():', loginStatus);
+      } else if (typeof isLoggedIn === 'function') {
+        loginStatus = isLoggedIn();
+        console.log('isLoggedIn():', loginStatus);
+      } else {
+        console.error('isLoggedIn 함수를 찾을 수 없습니다!');
+        alert('로그인 시스템 오류: 로그인 함수를 찾을 수 없습니다.\n페이지를 새로고침해주세요.');
+        return;
+      }
+      
+      if (!loginStatus) {
+        console.log('로그인되지 않음 - 로그인 오버레이 표시');
+        
+        if (typeof showNotification === 'function') {
+          showNotification('먼저 로그인을 해주세요.', 'warning');
+        } else {
+          alert('먼저 로그인을 해주세요.');
+        }
+        
+        if (typeof showLoginOverlay === 'function') {
+          showLoginOverlay();
+        } else if (typeof window.showLoginOverlay === 'function') {
+          window.showLoginOverlay();
+        } else {
+          console.warn('showLoginOverlay 함수를 찾을 수 없습니다.');
+        }
+        return;
+      }
+
+      // RPA 실행 버튼 찾기
+      const rpaBtn = document.querySelector('button[onclick="executeRPA()"]');
+      const originalHTML = rpaBtn ? rpaBtn.innerHTML : '';
+      
+      try {
+        // 처리 결과 초기화
+        resetProcessingResults();
+        
+        // 버튼 상태 변경
+        if (rpaBtn) {
+          console.log('버튼 상태 변경 중...');
+          rpaBtn.disabled = true;
+          rpaBtn.innerHTML = '<span class="btn-icon">⏳</span> 처리 중...';
+        }
+        
+        console.log('매입송장 RPA 처리 시작...');
+        
+        if (typeof showNotification === 'function') {
+          showNotification('매입송장 RPA 처리를 시작합니다...', 'info');
+        } else {
+          alert('매입송장 RPA 처리를 시작합니다...');
+        }
+        
+        // API 확인 및 호출
+        console.log('window.electronAPI 확인:', !!window.electronAPI);
+        console.log('processInvoice API 확인:', !!window.electronAPI?.processInvoice);
+        
+        if (window.electronAPI && window.electronAPI.processInvoice) {
+          console.log('Electron API 호출 중...');
+          const result = await window.electronAPI.processInvoice();
+          console.log('RPA 처리 결과:', result);
+          
+          if (result.success) {
+            // 성공 시 처리 결과 업데이트
+            updateProcessingResults(true, result);
+            
+            const message = result.message || 'RPA 처리가 완료되었습니다.';
+            if (typeof showNotification === 'function') {
+              showNotification(message, 'success');
+            } else {
+              alert('성공: ' + message);
+            }
+          } else {
+            // 실패 시 처리 결과 업데이트
+            updateProcessingResults(false, result);
+            
+            const error = result.error || 'RPA 처리 중 오류가 발생했습니다.';
+            if (typeof showNotification === 'function') {
+              showNotification(error, 'error');
+            } else {
+              alert('오류: ' + error);
+            }
+          }
+        } else {
+          const errorMsg = 'Electron API가 연결되지 않았습니다.';
+          console.error(errorMsg);
+          if (typeof showNotification === 'function') {
+            showNotification(errorMsg, 'error');
+          } else {
+            alert('오류: ' + errorMsg);
+          }
+        }
+        
+      } catch (error) {
+        console.error('RPA 실행 오류:', error);
+        const errorMsg = 'RPA 실행 중 오류가 발생했습니다: ' + error.message;
+        if (typeof showNotification === 'function') {
+          showNotification(errorMsg, 'error');
+        } else {
+          alert(errorMsg);
+        }
+      } finally {
+        // 버튼 상태 복원
+        console.log('버튼 상태 복원 중...');
+        if (rpaBtn) {
+          rpaBtn.disabled = false;
+          rpaBtn.innerHTML = originalHTML || '<span class="btn-icon">🚀</span> RPA 실행';
+        }
+      }
+    }      // 페이지 로드 완료 시 초기화
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('=== DOMContentLoaded 이벤트 발생 ===');
+      console.log('사용 가능한 함수들 확인:');
+      console.log('- window.isLoggedIn:', typeof window.isLoggedIn);
+      console.log('- isLoggedIn:', typeof isLoggedIn);
+      console.log('- showNotification:', typeof showNotification);
+      console.log('- showLoginOverlay:', typeof showLoginOverlay);
+      console.log('- window.electronAPI:', !!window.electronAPI);
+      console.log('- window.electronAPI.processInvoice:', !!window.electronAPI?.processInvoice);
+      console.log('DOMContentLoaded 이벤트 발생');
+      
+      // 로그인 시스템 초기화
+      initializeLoginSystem();
+      
+      initializeDarkMode();
+        // 버튼 상태 초기화      updateButtonStates();
+      
+      // 다중모드 진행 상황 업데이트 리스너 등록
+      if (window.electronAPI && window.electronAPI.onMultipleModeProgress) {
+        window.electronAPI.onMultipleModeProgress((progressData) => {
+          console.log('다중모드 진행 상황 업데이트:', progressData);
+          updateMultipleModeProgress(
+            progressData.groupNumber,
+            progressData.currentStep,
+            progressData.completedSteps,
+            progressData.error
+          );
+        });
+      }
+    });
+
+    // 다중 A열 값으로 RPA 실행 함수
+    async function executeMultipleValueA() {
+      console.log('=== 다중 A열 값으로 RPA 실행 시작 ===');
+      
+      // 로그인 상태 확인
+      let loginStatus = false;
+      
+      if (typeof window.isLoggedIn === 'function') {
+        loginStatus = window.isLoggedIn();
+      } else if (typeof isLoggedIn === 'function') {
+        loginStatus = isLoggedIn();
+      } else {
+        console.error('isLoggedIn 함수를 찾을 수 없습니다!');
+        alert('로그인 시스템 오류: 로그인 함수를 찾을 수 없습니다.\n페이지를 새로고침해주세요.');
+        return;
+      }
+      
+      if (!loginStatus) {
+        console.log('로그인되지 않음 - 로그인 오버레이 표시');
+        if (typeof showNotification === 'function') {
+          showNotification('먼저 로그인을 해주세요.', 'warning');
+        } else {
+          alert('먼저 로그인을 해주세요.');
+        }
+        
+        if (typeof showLoginOverlay === 'function') {
+          showLoginOverlay();
+        } else if (typeof window.showLoginOverlay === 'function') {
+          window.showLoginOverlay();
+        }
+        return;
+      }
+
+      // 다중 A열 값 입력 검증
+      const multipleValueAInput = document.getElementById('multipleValueAInput');
+      const inputValue = multipleValueAInput.value.trim();
+      
+      if (!inputValue) {
+        alert('다중 A열 값을 입력해주세요\n예시:\n- 쉼표 형식: 1,2,3,5\n- 범위 형식: 1~5');
+        multipleValueAInput.focus();
+        return;
+      }
+      
+      // 입력값 파싱 (쉼표 또는 틸드 지원)
+      let validatedValues = [];
+      
+      try {
+        validatedValues = parseMultipleInput(inputValue);
+      } catch (error) {
+        alert(error.message);
+        multipleValueAInput.focus();
+        return;
+      }
+      
+      if (validatedValues.length === 0) {
+        alert('유효한 A열 값이 없습니다.');
+        multipleValueAInput.focus();
+        return;
+      }
+      
+      console.log('검증된 A열 값들:', validatedValues);
+      
+      // 확인 대화상자
+      const confirmMessage = `다음 ${validatedValues.length}개의 A열 값을 순차적으로 처리하시겠습니까?\n\n값: ${validatedValues.join(', ')}\n\n예상 소요 시간: 약 ${validatedValues.length * 3}분`;
+      if (!confirm(confirmMessage)) {
+        return;
+      }
+      
+      const executeBtn = document.getElementById('executeMultipleValueABtn');
+      const originalHTML = executeBtn ? executeBtn.innerHTML : '';
+      
+      try {
+        // 처리 결과 초기화
+        resetProcessingResults();
+        
+        // 버튼 상태 변경
+        if (executeBtn) {
+          executeBtn.disabled = true;
+          executeBtn.innerHTML = '<span class="btn-icon">⏳</span> 다중 처리 중...';
+        }
+        
+        console.log(`다중 A열 값으로 매입송장 RPA 처리 시작: ${validatedValues.join(', ')}`);
+        
+        if (typeof showNotification === 'function') {
+          showNotification(`${validatedValues.length}개 A열 값 다중 처리를 시작합니다...`, 'info');
+        } else {
+          alert(`${validatedValues.length}개 A열 값 다중 처리를 시작합니다...`);
+        }
+        
+        // API 확인 및 호출
+        if (window.electronAPI && window.electronAPI.processMultipleValueA) {
+          console.log('다중 A열 값으로 Electron API 호출 중...');
+          const result = await window.electronAPI.processMultipleValueA(validatedValues);
+          console.log('다중 A열 값 RPA 처리 결과:', result);
+          
+          if (result.success) {
+            // 다중 처리 성공 시 - 단일 완료로 표시 (최종 결과만 표시)
+            updateProcessingResults(true, result);
+            
+            const message = `다중 처리 완료!\n총 ${result.totalProcessed}개 처리 (성공: ${result.successCount}, 실패: ${result.failCount})`;
+            if (typeof showNotification === 'function') {
+              showNotification(message, 'success');
+            } else {
+              alert('성공: ' + message);
+            }
+          } else {
+            // 다중 처리 실패 시
+            updateProcessingResults(false, result);
+            
+            const error = result.error || '다중 A열 값 RPA 처리 중 오류가 발생했습니다.';
+            if (typeof showNotification === 'function') {
+              showNotification(error, 'error');
+            } else {
+              alert('오류: ' + error);
+            }
+          }
+        } else {
+          const errorMsg = '다중 A열 값 처리 API가 연결되지 않았습니다.';
+          console.error(errorMsg);
+          if (typeof showNotification === 'function') {
+            showNotification(errorMsg, 'error');
+          } else {
+            alert('오류: ' + errorMsg);
+          }
+        }
+        
+      } catch (error) {
+        console.error('다중 A열 값 RPA 실행 오류:', error);
+        const errorMsg = '다중 A열 값 RPA 실행 중 오류가 발생했습니다: ' + error.message;
+        if (typeof showNotification === 'function') {
+          showNotification(errorMsg, 'error');
+        } else {
+          alert(errorMsg);
+        }
+      } finally {
+        // 버튼 상태 복원
+        if (executeBtn) {
+          executeBtn.disabled = false;
+          executeBtn.innerHTML = originalHTML || '<span class="btn-icon">🔄</span> 다중 값 RPA 실행';
+        }
+      }
+    }
+    
+    // A열 값으로 RPA 실행 함수
+    async function executeWithValueA() {
+      console.log('=== A열 값으로 RPA 실행 시작 ===');
+      
+      // 로그인 상태 확인
+      let loginStatus = false;
+      
+      if (typeof window.isLoggedIn === 'function') {
+        loginStatus = window.isLoggedIn();
+      } else if (typeof isLoggedIn === 'function') {
+        loginStatus = isLoggedIn();
+      } else {
+        console.error('isLoggedIn 함수를 찾을 수 없습니다!');
+        alert('로그인 시스템 오류: 로그인 함수를 찾을 수 없습니다.\n페이지를 새로고침해주세요.');
+        return;
+      }
+      
+      if (!loginStatus) {
+        console.log('로그인되지 않음 - 로그인 오버레이 표시');
+        if (typeof showNotification === 'function') {
+          showNotification('먼저 로그인을 해주세요.', 'warning');
+        } else {
+          alert('먼저 로그인을 해주세요.');
+        }
+        
+        if (typeof showLoginOverlay === 'function') {
+          showLoginOverlay();
+        } else if (typeof window.showLoginOverlay === 'function') {
+          window.showLoginOverlay();
+        }
+        return;
+      }
+
+      // A열 값 입력 검증
+      const valueAInput = document.getElementById('valueAInput');
+      const valueA = parseInt(valueAInput.value);
+      
+      if (isNaN(valueA) || valueA < 1 || valueA > 99) {
+        alert('올바른 A열 값을 입력해주세요 (1-99 사이의 숫자)');
+        valueAInput.focus();
+        return;
+      }
+      
+      console.log('입력된 A열 값:', valueA);
+      
+      const executeBtn = document.getElementById('executeWithValueABtn');
+      const originalHTML = executeBtn ? executeBtn.innerHTML : '';
+      
+      try {
+        // 처리 결과 초기화
+        resetProcessingResults();
+        
+        // 버튼 상태 변경
+        if (executeBtn) {
+          executeBtn.disabled = true;
+          executeBtn.innerHTML = '<span class="btn-icon">⏳</span> 처리 중...';
+        }
+        
+        console.log('A열 값으로 매입송장 RPA 처리 시작...');
+        
+        if (typeof showNotification === 'function') {
+          showNotification(`A열 값 ${valueA}로 매입송장 RPA 처리를 시작합니다...`, 'info');
+        } else {
+          alert(`A열 값 ${valueA}로 매입송장 RPA 처리를 시작합니다...`);
+        }
+        
+        // API 확인 및 호출 (A열 값 설정 후 기존 API 사용)
+        if (window.electronAPI && window.electronAPI.processInvoice) {
+          console.log('A열 값 설정 후 Electron API 호출 중...');
+          
+          // 먼저 A열 값을 설정
+          if (window.electronAPI.setValueA) {
+            console.log(`[UI] A열 값 ${valueA} 설정 API 호출 중...`);
+            const setResult = await window.electronAPI.setValueA(valueA);
+            console.log(`[UI] A열 값 설정 결과:`, setResult);
+            
+            if (!setResult.success) {
+              throw new Error(`A열 값 설정 실패: ${setResult.error}`);
+            }
+          } else {
+            console.error('[UI] window.electronAPI.setValueA 함수를 찾을 수 없음');
+          }
+          
+          // 기존 processInvoice API 호출
+          const result = await window.electronAPI.processInvoice();
+          console.log('A열 값 RPA 처리 결과:', result);
+          
+          if (result.success) {
+            // 성공 시 처리 결과 업데이트
+            updateProcessingResults(true, result);
+            
+            const message = result.message || `A열 값 ${valueA}로 RPA 처리가 완료되었습니다.`;
+            if (typeof showNotification === 'function') {
+              showNotification(message, 'success');
+            } else {
+              alert('성공: ' + message);
+            }
+          } else {
+            // 실패 시 처리 결과 업데이트
+            updateProcessingResults(false, result);
+            
+            const error = result.error || 'A열 값 RPA 처리 중 오류가 발생했습니다.';
+            if (typeof showNotification === 'function') {
+              showNotification(error, 'error');
+            } else {
+              alert('오류: ' + error);
+            }
+          }
+        } else {
+          const errorMsg = 'RPA 처리 API가 연결되지 않았습니다.';
+          console.error(errorMsg);
+          if (typeof showNotification === 'function') {
+            showNotification(errorMsg, 'error');
+          } else {
+            alert('오류: ' + errorMsg);
+          }
+        }
+        
+      } catch (error) {
+        console.error('A열 값 RPA 실행 오류:', error);
+        const errorMsg = 'A열 값 RPA 실행 중 오류가 발생했습니다: ' + error.message;
+        if (typeof showNotification === 'function') {
+          showNotification(errorMsg, 'error');
+        } else {
+          alert(errorMsg);
+        }
+      } finally {
+        // 버튼 상태 복원
+        if (executeBtn) {
+          executeBtn.disabled = false;
+          executeBtn.innerHTML = originalHTML || '<span class="btn-icon">🎯</span> A열 값으로 RPA 실행';
+        }
+      }
+    }
+    
+    // 처리 결과 업데이트 함수
+    function updateProcessingResults(success, result) {
+      console.log('처리 결과 업데이트:', success, result);
+      
+      // 다중 모드인지 확인
+      const isMultipleMode = result && result.isMultipleMode;
+      
+      if (isMultipleMode) {
+        // 다중모드 결과 표시
+        updateMultipleModeResults(result);
+      } else {
+        // 단일모드 결과 표시
+        updateSingleModeResults(success, result);
+      }
+    }
+    
+    // 단일모드 결과 업데이트
+    function updateSingleModeResults(success, result) {
+      // 단일모드 단계별 상세 표시
+      const stepDetailsGroup = document.getElementById('stepDetailsGroup');
+      if (stepDetailsGroup) {
+        stepDetailsGroup.style.display = 'block';
+      }
+      
+      // 다중모드 결과는 숨기기
+      const multipleResultsGroup = document.getElementById('multipleResultsGroup');
+      if (multipleResultsGroup) {
+        multipleResultsGroup.style.display = 'none';
+      }
+      
+      // 통계 업데이트
+      const totalFiles = document.getElementById('totalFiles');
+      const completedFiles = document.getElementById('completedFiles');
+      const failedFiles = document.getElementById('failedFiles');
+      const successRate = document.getElementById('successRate');
+      
+      if (totalFiles) totalFiles.textContent = '1';
+      
+      if (success) {
+        if (completedFiles) completedFiles.textContent = '1';
+        if (failedFiles) failedFiles.textContent = '0';
+        if (successRate) successRate.textContent = '100%';
+        
+        // 모든 단계를 완료로 표시
+        for (let i = 1; i <= 7; i++) {
+          const stepStatus = document.getElementById(`step${i}Status`);
+          if (stepStatus) {
+            stepStatus.textContent = '✅ 완료';
+            stepStatus.className = 'step-status completed';
+          }
+        }
+      } else {
+        if (completedFiles) completedFiles.textContent = '0';
+        if (failedFiles) failedFiles.textContent = '1';
+        if (successRate) successRate.textContent = '0%';
+        
+        // 실패한 단계까지만 표시 (결과에서 실패 단계 정보가 있으면 활용)
+        const failedStep = extractFailedStepFromResult(result);
+        
+        for (let i = 1; i <= 7; i++) {
+          const stepStatus = document.getElementById(`step${i}Status`);
+          if (stepStatus) {
+            if (i < failedStep) {
+              stepStatus.textContent = '✅ 완료';
+              stepStatus.className = 'step-status completed';
+            } else if (i === failedStep) {
+              stepStatus.textContent = '❌ 실패';
+              stepStatus.className = 'step-status failed';
+            } else {
+              stepStatus.textContent = '⏸️ 중단';
+              stepStatus.className = 'step-status waiting';
+            }
+          }
+        }
+      }
+    }
+    
+    // 다중모드 결과 업데이트
+    function updateMultipleModeResults(result) {
+      console.log('다중모드 결과 업데이트:', result);
+      
+      // 단일모드 단계별 상세는 숨기기
+      const stepDetailsGroup = document.getElementById('stepDetailsGroup');
+      if (stepDetailsGroup) {
+        stepDetailsGroup.style.display = 'none';
+      }
+      
+      // 다중모드 결과 표시
+      const multipleResultsGroup = document.getElementById('multipleResultsGroup');
+      if (multipleResultsGroup) {
+        multipleResultsGroup.style.display = 'block';
+      }
+      
+      const multipleResults = document.getElementById('multipleResults');
+      if (multipleResults && result.groupResults) {
+        multipleResults.innerHTML = '';
+        
+        // 각 그룹별 결과 표시
+        result.groupResults.forEach(groupResult => {
+          const groupDiv = createGroupResultElement(groupResult);
+          multipleResults.appendChild(groupDiv);
+        });
+      }
+      
+      // 전체 통계 업데이트
+      const totalFiles = document.getElementById('totalFiles');
+      const completedFiles = document.getElementById('completedFiles');
+      const failedFiles = document.getElementById('failedFiles');
+      const successRate = document.getElementById('successRate');
+      
+      if (result.totalProcessed && totalFiles) {
+        totalFiles.textContent = result.totalProcessed.toString();
+      }
+      if (result.successCount !== undefined && completedFiles) {
+        completedFiles.textContent = result.successCount.toString();
+      }
+      if (result.failCount !== undefined && failedFiles) {
+        failedFiles.textContent = result.failCount.toString();
+      }
+      if (result.totalProcessed && result.successCount !== undefined && successRate) {
+        const rate = result.totalProcessed > 0 ? Math.round((result.successCount / result.totalProcessed) * 100) : 0;
+        successRate.textContent = `${rate}%`;
+      }
+    }
+    
+    // 그룹 결과 엘리먼트 생성
+    function createGroupResultElement(groupResult) {
+      const groupDiv = document.createElement('div');
+      groupDiv.className = 'group-result';
+      
+      // 헤더 생성
+      const headerDiv = document.createElement('div');
+      let headerClass = 'group-header';
+      let statusText = '처리 중';
+      let statusIcon = '⏳';
+      
+      if (groupResult.success) {
+        headerClass += ' success';
+        statusText = '완료';
+        statusIcon = '✅';
+      } else if (groupResult.error) {
+        headerClass += ' failed';
+        statusText = '실패';
+        statusIcon = '❌';
+      } else if (groupResult.processing) {
+        headerClass += ' processing';
+        statusText = '처리 중';
+        statusIcon = '⏳';
+      }
+      
+      headerDiv.className = headerClass;
+      headerDiv.innerHTML = `
+        <span>그룹넘버 ${groupResult.groupNumber}</span>
+        <span>${statusIcon} ${statusText}</span>
+      `;
+      
+      // 바디 생성
+      const bodyDiv = document.createElement('div');
+      bodyDiv.className = 'group-body';
+      
+      if (groupResult.error) {
+        bodyDiv.innerHTML = `
+          <div style="color: #e74c3c; font-weight: bold; margin-bottom: 10px;">
+            오류: ${groupResult.error}
+          </div>
+        `;
+      }
+      
+      // 단계별 결과 생성
+      const stepsDiv = document.createElement('div');
+      stepsDiv.className = 'group-steps';
+      
+      const stepNames = [
+        'ERP 접속 및 로그인',
+        '구매 입고내역 조회', 
+        '엑셀 파일 열기 및 매크로 실행',
+        '기초원가공급사 메뉴 이동',
+        '캘린더 버튼 클릭 및 송장 처리',
+        '대기중인 공급사송장 메뉴 이동',
+        '그룹웨어 상신'
+      ];
+      
+      for (let i = 1; i <= 7; i++) {
+        const stepDiv = document.createElement('div');
+        stepDiv.className = 'group-step';
+        
+        let stepStatusClass = 'waiting';
+        let stepStatusText = '대기';
+        
+        if (groupResult.completedSteps && groupResult.completedSteps >= i) {
+          stepStatusClass = 'completed';
+          stepStatusText = '완료';
+        } else if (groupResult.failedStep === i) {
+          stepStatusClass = 'failed';
+          stepStatusText = '실패';
+        } else if (groupResult.currentStep === i) {
+          stepStatusClass = 'processing';
+          stepStatusText = '진행중';
+        }
+        
+        stepDiv.innerHTML = `
+          <span class="group-step-number">${i}단계</span>
+          <span class="group-step-name">${stepNames[i-1]}</span>
+          <span class="group-step-status ${stepStatusClass}">${stepStatusText}</span>
+        `;
+        
+        stepsDiv.appendChild(stepDiv);
+      }
+      
+      bodyDiv.appendChild(stepsDiv);
+      groupDiv.appendChild(headerDiv);
+      groupDiv.appendChild(bodyDiv);
+      
+      return groupDiv;
+    }
+    
+    // 결과에서 실패한 단계 추출 (에러 메시지 분석)
+    function extractFailedStepFromResult(result) {
+      const errorMessage = result?.error?.toLowerCase() || '';
+      
+      if (errorMessage.includes('로그인') || errorMessage.includes('접속')) {
+        return 1; // 1단계 실패
+      } else if (errorMessage.includes('구매') || errorMessage.includes('입고') || errorMessage.includes('검색버튼')) {
+        return 2; // 2단계 실패
+      } else if (errorMessage.includes('엑셀') || errorMessage.includes('매크로')) {
+        return 3; // 3단계 실패
+      } else if (errorMessage.includes('기초원가') || errorMessage.includes('공급사')) {
+        return 4; // 4단계 실패
+      } else if (errorMessage.includes('캘린더') || errorMessage.includes('송장')) {
+        return 5; // 5단계 실패
+      } else if (errorMessage.includes('6번') || errorMessage.includes('대기중인')) {
+        return 6; // 6단계 실패
+      } else if (errorMessage.includes('7번') || errorMessage.includes('그룹웨어')) {
+        return 7; // 7단계 실패
+      }
+      
+      return 7; // 기본적으로 마지막 단계에서 실패한 것으로 가정
+    }
+    
+    // 처리 결과 초기화 함수
+    function resetProcessingResults() {
+      console.log('처리 결과 초기화');
+      
+      // 단일모드 결과 초기화
+      const stepDetailsGroup = document.getElementById('stepDetailsGroup');
+      if (stepDetailsGroup) {
+        stepDetailsGroup.style.display = 'none';
+      }
+      
+      // 다중모드 결과 초기화
+      const multipleResultsGroup = document.getElementById('multipleResultsGroup');
+      if (multipleResultsGroup) {
+        multipleResultsGroup.style.display = 'none';
+      }
+      
+      const multipleResults = document.getElementById('multipleResults');
+      if (multipleResults) {
+        multipleResults.innerHTML = '';
+      }
+      
+      // 통계 초기화
+      const totalFiles = document.getElementById('totalFiles');
+      const completedFiles = document.getElementById('completedFiles');
+      const failedFiles = document.getElementById('failedFiles');
+      const successRate = document.getElementById('successRate');
+      
+      if (totalFiles) totalFiles.textContent = '0';
+      if (completedFiles) completedFiles.textContent = '0';
+      if (failedFiles) failedFiles.textContent = '0';
+      if (successRate) successRate.textContent = '0%';
+      
+      // 단일모드 모든 단계를 대기중으로 초기화
+      for (let i = 1; i <= 7; i++) {
+        const stepStatus = document.getElementById(`step${i}Status`);
+        if (stepStatus) {
+          stepStatus.textContent = '⏳ 대기중';
+          stepStatus.className = 'step-status waiting';
+        }
+      }
+    }
+    
+    // 다중모드 실시간 결과 업데이트 (진행 중 상태 업데이트용)
+    function updateMultipleModeProgress(groupNumber, currentStep, completedSteps, error) {
+      const multipleResults = document.getElementById('multipleResults');
+      if (!multipleResults) return;
+      
+      const existingGroupDiv = multipleResults.querySelector(`[data-group="${groupNumber}"]`);
+      
+      const groupResult = {
+        groupNumber: groupNumber,
+        currentStep: currentStep,
+        completedSteps: completedSteps,
+        processing: !error && currentStep > 0,
+        success: !error && completedSteps >= 7,
+        error: error
+      };
+      
+      if (error) {
+        groupResult.failedStep = currentStep;
+      }
+      
+      const newGroupDiv = createGroupResultElement(groupResult);
+      newGroupDiv.setAttribute('data-group', groupNumber);
+      
+      if (existingGroupDiv) {
+        multipleResults.replaceChild(newGroupDiv, existingGroupDiv);
+      } else {
+        multipleResults.appendChild(newGroupDiv);
+        
+        // 다중모드 결과 표시
+        const multipleResultsGroup = document.getElementById('multipleResultsGroup');
+        if (multipleResultsGroup) {
+          multipleResultsGroup.style.display = 'block';
+        }
+      }
+    }
+
+    // 다중 입력값 파싱 함수 (쉼표, 틸드 지원)
+    function parseMultipleInput(inputValue) {
+      const values = [];
+      
+      // 틸드(~) 형식 체크
+      if (inputValue.includes('~')) {
+        // 틸드는 하나만 허용
+        if ((inputValue.match(/~/g) || []).length > 1) {
+          throw new Error('틸드(~)는 하나의 범위에만 사용할 수 있습니다.\n예: 1~5');
+        }
+        
+        // 쉼표와 틸드 혼용 불허
+        if (inputValue.includes(',')) {
+          throw new Error('쉼표(,)와 틸드(~)를 동시에 사용할 수 없습니다.\n다음 중 하나를 선택해주세요:\n- 쉼표 형식: 1,2,3,5\n- 범위 형식: 1~5');
+        }
+        
+        const parts = inputValue.split('~').map(v => v.trim());
+        if (parts.length !== 2) {
+          throw new Error('틸드 형식이 올바르지 않습니다.\n올바른 예: 1~5');
+        }
+        
+        const start = parseInt(parts[0]);
+        const end = parseInt(parts[1]);
+        
+        if (isNaN(start) || isNaN(end)) {
+          throw new Error('범위 값이 숫자가 아닙니다.\n예: 1~5');
+        }
+        
+        if (start < 1 || start > 99 || end < 1 || end > 99) {
+          throw new Error('범위 값은 1-99 사이여야 합니다.');
+        }
+        
+        if (start > end) {
+          throw new Error('범위가 역순입니다.\n순차적으로 입력해주세요.\n예: 1~5 (5~1 ❌)');
+        }
+        
+        // 범위 값 생성
+        for (let i = start; i <= end; i++) {
+          values.push(i);
+        }
+        
+      } else if (inputValue.includes(',')) {
+        // 쉼표 형식
+        const parts = inputValue.split(',').map(v => v.trim()).filter(v => v !== '');
+        
+        for (const part of parts) {
+          const numValue = parseInt(part);
+          if (isNaN(numValue) || numValue < 1 || numValue > 99) {
+            throw new Error(`잘못된 A열 값: "${part}"\n1-99 사이의 숫자만 입력해주세요.`);
+          }
+          if (!values.includes(numValue)) {
+            values.push(numValue);
+          }
+        }
+        
+      } else {
+        // 단일 값
+        const numValue = parseInt(inputValue);
+        if (isNaN(numValue) || numValue < 1 || numValue > 99) {
+          throw new Error('올바른 A열 값을 입력해주세요 (1-99 사이의 숫자)');
+        }
+        values.push(numValue);
+      }
+      
+      // 중복 제거 및 정렬
+      return [...new Set(values)].sort((a, b) => a - b);
+    }
+
+    // 전역에서 접근 가능하도록 window 객체에 할당
+    window.captureFullPage = captureFullPage;
+    window.toggleDarkMode = toggleDarkMode;
+    window.executeWithValueA = executeWithValueA;
+    window.executeMultipleValueA = executeMultipleValueA;
+    window.updateProcessingResults = updateProcessingResults;
+    window.updateSingleModeResults = updateSingleModeResults;
+    window.updateMultipleModeResults = updateMultipleModeResults;
+    window.updateMultipleModeProgress = updateMultipleModeProgress;
+    window.resetProcessingResults = resetProcessingResults;
+    window.createGroupResultElement = createGroupResultElement;
+    window.parseMultipleInput = parseMultipleInput;
+  </script>
+</body>
+</html>

@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>회계 전표 처리 - ERP RPA 대시보드</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+      background-color: #f9fcff;
+      padding: 40px;
+      color: #2c3e50;
+      transition: background-color 0.3s ease;
+    }
+    .container {
+      max-width: 1440px;
+      margin: auto;
+    }
+    .login-form, .dashboard, .error-log {
+      background: #ffffff;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      margin-bottom: 30px;
+      transition: box-shadow 0.2s ease-in-out, transform 0.2s;
+    }
+    .login-form:hover, .dashboard:hover, .error-log:hover {
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+      transform: translateY(-2px);
+    }
+    .login-form input {
+      margin: 10px 10px 10px 0;
+      padding: 12px;
+      width: 200px;
+      border-radius: 8px;
+      border: 1px solid #dcdcdc;
+      transition: border-color 0.2s;
+    }
+    .login-form input:focus {
+      border-color: #2980b9;
+      outline: none;
+    }
+    .login-form button {
+      padding: 12px 20px;
+      border: none;
+      background-color: #2980b9;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+    .login-form button:hover {
+      background-color: #1c6692;
+    }
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .dashboard-header input {
+      padding: 10px;
+      width: 300px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      transition: box-shadow 0.2s ease;
+    }
+    .dashboard-header input:focus {
+      outline: none;
+      border-color: #2980b9;
+      box-shadow: 0 0 5px rgba(41, 128, 185, 0.4);
+    }
+    .scrollable-table {
+      max-height: 350px;
+      overflow-y: auto;
+      border: 1px solid #eee;
+      border-radius: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background-color 0.2s;
+    }
+    th {
+      background-color: #f0f5ff;
+    }
+    tr:hover {
+      background-color: #e3f2fd;
+    }
+    .highlight {
+      background-color: #fff8dc !important;
+    }
+    .badge {
+      padding: 6px 12px;
+      border-radius: 14px;
+      font-size: 0.85em;
+      font-weight: 600;
+      display: inline-block;
+    }
+    .badge.waiting { background: #b2bec3; color: white; }
+    .badge.running { background: #0984e3; color: white; }
+    .badge.done { background: #00b894; color: white; }
+    .badge.error { background: #d63031; color: white; }
+    .actions button {
+      border: none;
+      background: none;
+      cursor: pointer;
+      margin-right: 8px;
+      font-size: 1em;
+      transition: color 0.2s;
+    }
+    .actions button:hover {
+      color: #0984e3;
+    }
+    .error-log-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .error-card {
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      background-color: #fff7f7;
+      border-left: 5px solid #d63031;
+    }
+    .error-meta {
+      font-size: 0.85em;
+      color: #666;
+    }
+    .error-title {
+      font-weight: bold;
+      font-size: 1.1em;
+      margin-bottom: 4px;
+    }
+    .error-detail {
+      margin-bottom: 6px;
+      color: #444;
+    }
+    .error-link {
+      color: #2980b9;
+      text-decoration: none;
+      font-size: 0.85em;
+    }
+    .error-link:hover {
+      text-decoration: underline;
+    }
+    #editModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    #editModal .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 400px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    #editModal input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    #editModal button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    #editModal .save-btn {
+      background-color: #27ae60;
+      color: white;
+    }
+    #editModal .cancel-btn {
+      background-color: #bdc3c7;
+      color: black;
+      margin-left: 10px;
+    }
+    .section {
+      margin-bottom: 30px;
+      padding: 24px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+    .folder-path {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #666;
+      word-break: break-all;
+    }
+    .input-group {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+    .input-group h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    .range-inputs, .single-input {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .range-inputs label, .single-input label {
+      min-width: 120px;
+      font-weight: bold;
+    }
+    .range-inputs input, .single-input input {
+      width: 80px;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+    .range-inputs button, .single-input button {
+      margin-left: 10px;
+      padding: 8px 15px;
+    }
+    .button-group {
+      margin-bottom: 20px;
+    }    .button-group button {
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }    /* 스크린 캡처 버튼 스타일 */
+    .screen-capture-btn {
+      position: fixed;
+      top: 20px;
+      right: 80px; /* 다크모드 버튼 왼쪽에 위치 */
+      background: #27ae60;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+      z-index: 1001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .screen-capture-btn:hover {
+      background: #219a52;
+      transform: scale(1.1);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .screen-capture-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* 다크모드 토글 버튼 스타일 */
+    .dark-mode-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #2980b9;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dark-mode-toggle:hover {
+      background: #1c6692;
+      transform: scale(1.1);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    /* 다크모드 스타일 */
+    body.dark-mode {
+      background-color: #1a1a1a;
+      background-image: none;
+      color: #e0e0e0;
+    }    body.dark-mode .login-form,
+    body.dark-mode .dashboard,
+    body.dark-mode .error-log,
+    body.dark-mode .section {
+      background: #2d2d2d;
+      color: #e0e0e0;
+      border: 1px solid #404040;
+    }    body.dark-mode .login-form input,
+    body.dark-mode .dashboard-header input,
+    body.dark-mode .range-inputs input,
+    body.dark-mode .single-input input {
+      background: #404040;
+      color: #e0e0e0;
+      border: 1px solid #555;
+    }
+
+    body.dark-mode .login-form input:focus,
+    body.dark-mode .dashboard-header input:focus,
+    body.dark-mode .range-inputs input:focus,
+    body.dark-mode .single-input input:focus {
+      border-color: #4a9eff;
+      box-shadow: 0 0 5px rgba(74, 158, 255, 0.4);
+    }
+
+    body.dark-mode .input-group {
+      background-color: #3a3a3a;
+      border: 1px solid #555;
+    }
+
+    body.dark-mode .folder-path {
+      background-color: #404040;
+      border: 1px solid #555;
+      color: #e0e0e0;
+    }
+
+    body.dark-mode .login-form button,
+    body.dark-mode .range-inputs button,
+    body.dark-mode .single-input button,
+    body.dark-mode #selectFolderBtn {
+      background-color: #4a9eff;
+      color: #ffffff;
+    }
+
+    body.dark-mode .login-form button:hover,
+    body.dark-mode .range-inputs button:hover,
+    body.dark-mode .single-input button:hover,
+    body.dark-mode #selectFolderBtn:hover {
+      background-color: #357abd;
+    }
+
+    body.dark-mode .login-form button:disabled,
+    body.dark-mode .range-inputs button:disabled,
+    body.dark-mode .single-input button:disabled {
+      background-color: #666;
+      color: #999;
+      cursor: not-allowed;
+    }
+
+    body.dark-mode th {
+      background-color: #404040;
+      color: #e0e0e0;
+    }
+
+    body.dark-mode td {
+      border-bottom: 1px solid #404040;
+    }
+
+    body.dark-mode tr:hover {
+      background-color: #3a3a3a;
+    }
+
+    body.dark-mode .scrollable-table {
+      border: 1px solid #404040;
+    }
+
+    body.dark-mode .error-card {
+      background-color: #2d1f1f;
+      border-left: 5px solid #ff6b6b;
+    }
+
+    body.dark-mode #editModal .modal-content {
+      background: #2d2d2d;
+      color: #e0e0e0;
+    }
+
+    body.dark-mode #editModal input {
+      background: #404040;
+      color: #e0e0e0;
+      border: 1px solid #555;
+    }    body.dark-mode .dark-mode-toggle {
+      background: #f39c12;
+    }
+
+    body.dark-mode .dark-mode-toggle:hover {
+      background: #e67e22;
+    }
+
+    /* 다크모드에서 스크린 캡처 버튼 스타일 */
+    body.dark-mode .screen-capture-btn {
+      background: #e67e22;
+    }
+
+    body.dark-mode .screen-capture-btn:hover {
+      background: #d35400;
+    }
+
+    body.dark-mode #savedCredentialsInfo {
+      background-color: #2d4a2d;
+      color: #90ee90;
+    }
+
+    body.dark-mode .actions button:hover {
+      color: #4a9eff;
+    }
+
+    body.dark-mode .error-meta,
+    body.dark-mode .error-title,
+    body.dark-mode .error-detail {
+      color: #e0e0e0;
+    }    body.dark-mode .error-link {
+      color: #4a9eff;
+    }
+
+    /* 다크모드 추가 스타일 개선 */
+    body.dark-mode table {
+      background: #2d2d2d;
+      color: #e0e0e0;
+    }
+
+    body.dark-mode th {
+      background-color: #404040 !important;
+      color: #e0e0e0 !important;
+      border-bottom: 1px solid #555;
+    }
+
+    body.dark-mode td {
+      color: #e0e0e0;
+      border-bottom: 1px solid #404040;
+    }
+
+    body.dark-mode tr:hover {
+      background-color: #3a3a3a !important;
+    }
+
+    body.dark-mode .highlight {
+      background-color: #4a4a00 !important;
+      color: #fff !important;
+    }
+
+    body.dark-mode .range-inputs label,
+    body.dark-mode .single-input label,
+    body.dark-mode .input-group h3,
+    body.dark-mode h2, 
+    body.dark-mode h3 {
+      color: #e0e0e0 !important;
+    }
+
+    body.dark-mode .button-group button {
+      background-color: #4a9eff;
+      color: #ffffff;
+      border: 1px solid #357abd;
+    }
+
+    body.dark-mode .button-group button:hover {
+      background-color: #357abd;
+    }
+
+    body.dark-mode .button-group button:disabled {
+      background-color: #666;
+      color: #999;
+      cursor: not-allowed;
+    }
+
+    body.dark-mode .badge.waiting { 
+      background: #6c757d; 
+      color: white; 
+    }
+    
+    body.dark-mode .badge.running { 
+      background: #17a2b8; 
+      color: white; 
+    }
+    
+    body.dark-mode .badge.done { 
+      background: #28a745; 
+      color: white; 
+    }
+    
+    body.dark-mode .badge.error { 
+      background: #dc3545; 
+      color: white; 
+    }
+
+    body.dark-mode .error-meta {
+      color: #b0b0b0 !important;
+    }
+
+    body.dark-mode #editModal .save-btn {
+      background-color: #28a745;
+      color: white;
+    }
+
+    body.dark-mode #editModal .cancel-btn {
+      background-color: #6c757d;
+      color: white;
+    }
+
+    body.dark-mode #editModal h3 {
+      color: #e0e0e0;
+    }
+
+    /* 플레이스홀더 텍스트 다크모드 */
+    body.dark-mode input::placeholder {
+      color: #999 !important;
+    }
+
+    body.dark-mode input::-webkit-input-placeholder {
+      color: #999 !important;
+    }
+
+    body.dark-mode input::-moz-placeholder {
+      color: #999 !important;
+    }
+
+    body.dark-mode input:-ms-input-placeholder {
+      color: #999 !important;
+    }
+
+    /* 모든 아이콘과 이모지가 잘 보이도록 */
+    body.dark-mode .actions button {
+      color: #e0e0e0;
+      background: transparent;
+    }    body.dark-mode .actions button:hover {
+      color: #4a9eff;
+      background: rgba(74, 158, 255, 0.1);
+    }
+
+    /* 사이드바 네비게이션 스타일 */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 250px;
+      height: 100vh;
+      background: #ffffff;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+      z-index: 999;
+      padding: 20px 0;
+      transition: all 0.3s ease;
+    }    .sidebar-header {
+      padding: 0 20px 30px;
+      border-bottom: 1px solid #e0e0e0;
+      margin-bottom: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }    .sidebar-logo {
+      width: 99.45%;
+      aspect-ratio: 1;
+      margin-bottom: 15px;
+      border-radius: 12px;
+      object-fit: cover;
+    }    .sidebar-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #2c3e50;
+      margin: 0;
+    }
+
+    .sidebar-subtitle {
+      font-size: 11px;
+      color: #7f8c8d;
+      margin-top: 8px;
+      font-weight: 400;
+      text-align: center;
+      opacity: 0.8;
+    }
+
+    .sidebar-nav {
+      padding: 0 10px;
+    }
+
+    .nav-item {
+      display: block;
+      padding: 15px 20px;
+      margin-bottom: 5px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: #666;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .nav-item:hover {
+      background: #f0f5ff;
+      color: #2980b9;
+      text-decoration: none;
+    }
+
+    .nav-item.active {
+      background: #2980b9;
+      color: white;
+    }
+
+    .nav-item.active:hover {
+      background: #1c6692;
+    }
+
+    .nav-icon {
+      margin-right: 12px;
+      font-size: 16px;
+    }
+
+    /* 메인 컨텐츠 영역 조정 */
+    .main-content {
+      margin-left: 250px;
+      transition: margin-left 0.3s ease;
+    }
+
+    /* 다크모드 토글 버튼 위치 조정 */
+    .dark-mode-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #2980b9;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      font-size: 20px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+      z-index: 1001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 사이드바 다크모드 스타일 */
+    body.dark-mode .sidebar {
+      background: #2d2d2d;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+    }
+
+    body.dark-mode .sidebar-header {
+      border-bottom: 1px solid #404040;
+    }    body.dark-mode .sidebar-title {
+      color: #e0e0e0;
+    }
+
+    body.dark-mode .sidebar-subtitle {
+      color: #95a5a6;
+    }
+
+    body.dark-mode .nav-item {
+      color: #b0b0b0;
+    }
+
+    body.dark-mode .nav-item:hover {
+      background: #404040;
+      color: #4a9eff;
+    }
+
+    body.dark-mode .nav-item.active {
+      background: #4a9eff; 
+      color: white;
+    }
+
+    body.dark-mode .nav-item.active:hover {
+      background: #357abd;
+    }  </style>
+</head>
+<body>
+  <!-- 로그인 모듈 스크립트 로드 -->
+  <script src="login-module.js"></script>  <!-- 사이드바 네비게이션 -->  <div class="sidebar">
+    <div class="sidebar-header">
+      <img src="ERP_RPA아이콘.png" alt="ERP RPA" class="sidebar-logo">
+      <div class="sidebar-title">ERP RPA SYSTEM - Ark</div>
+      <div class="sidebar-subtitle" style="font-size:12px; font-weight:400; margin-top:4px;">
+        <span style="color:#2980b9; font-weight:600;">HyperAutomation</span> <span style="opacity:0.7;">| Rev. 2025.06.28</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="index.html" class="nav-item active" id="nav-voucher">
+        <span class="nav-icon">📋</span>
+        1. 회계 전표 상신
+      </a>
+      <a href="index2.html" class="nav-item" id="nav-invoice">
+        <span class="nav-icon">📄</span>
+        2. 매입송장 상신
+      </a>
+    </nav>
+  </div>
+  <!-- 메인 컨텐츠 -->
+  <div class="main-content">
+  <!-- 스크린 캡처 버튼 -->
+  <button class="screen-capture-btn" onclick="captureFullPage()" title="전체 페이지 스크린샷">
+    <span id="captureIcon">📷</span>
+  </button>
+  
+  <!-- 다크모드 토글 버튼 -->
+  <button class="dark-mode-toggle" onclick="toggleDarkMode()" title="다크모드 전환">
+    <span id="darkModeIcon">🌙</span>  </button>
+  <div class="container">
+    <!-- 페이지 헤더 -->
+    <div class="section">
+      <h2>📄 회계 전표 처리</h2>
+      <p>회계 전표 파일을 업로드하고, 자동 처리를 진행합니다.</p>
+    </div>
+
+    <!-- 폴더 선택 섹션 -->
+    <div class="section">
+      <h2>작업 폴더 설정</h2>
+      <button id="selectFolderBtn" onclick="selectFolder()">폴더 지정</button>
+      <div id="folderPathDisplay" class="folder-path">폴더가 선택되지 않았습니다.</div>
+    </div>
+
+    <!-- 작업 실행 섹션 추가 -->
+    <div class="section">
+      <h2>작업 실행</h2>
+      
+      
+      <!-- 범위 선택 섹션 -->
+      <div class="input-group">
+          <h3>파일 범위 선택</h3>
+          <div class="range-inputs">
+              <label for="startFileNumber">시작 파일 번호:</label>
+              <input type="number" id="startFileNumber" min="1" max="99" value="1" placeholder="1">
+              
+              <label for="endFileNumber">끝 파일 번호:</label>
+              <input type="number" id="endFileNumber" min="1" max="99" value="17" placeholder="17">
+              
+              <button id="executeSelectedBtn" onclick="executeSelectedFiles()" disabled>선택된 파일 처리</button>
+          </div>
+      </div>
+      
+      <!-- 단일 파일 섹션 -->
+      <div class="input-group">
+          <h3>단일 파일 처리</h3>
+          <div class="single-input">
+              <label for="singleFileNumber">파일 번호:</label>
+              <input type="number" id="singleFileNumber" min="1" max="99" placeholder="예: 5">
+              
+              <button id="executeSingleBtn" onclick="executeSingleFile()" disabled>단일 파일 처리</button>
+          </div>
+      </div>
+    </div>
+
+    <div class="dashboard">
+      <div class="dashboard-header">
+        <h2>📊 ERP RPA 작업 목록</h2>
+        <input type="text" placeholder="작업명 검색" id="searchBox" oninput="highlightRows()">
+      </div>
+
+      <div class="scrollable-table">
+        <table id="taskTable">
+          <thead>
+            <tr>
+              <th>작업명</th>
+              <th>상태</th>
+              <th>마지막 실행</th>
+              <th>소요 시간</th>
+              <th>성공/실패</th>
+              <th>스케줄</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody>      
+            <tr><td>💼 1. ARK전표업로드_U-FLEX TESTER 3대 임차료_엔닷</td><td><span class="badge waiting">대기 중</span></td><td>2025-05-15 09:30</td><td>3분</td><td>성공</td><td>매월 15일 09:30</td><td class="actions"><button onclick="runEdit(this)">▶️</button><button onclick="openEditModal(this)">✏️</button><button>🗑️</button></td></tr>
+            <tr><td>💼 2. ARK전표업로드_편의점 임대료 청구_루아</td><td><span class="badge done">완료</span></td><td>2025-05-12 11:00</td><td>1분</td><td>성공</td><td>매월 12일 11:00</td><td class="actions"><button onclick="runEdit(this)">▶️</button><button onclick="openEditModal(this)">✏️</button><button>🗑️</button></td></tr>
+            <tr><td>💼 3. ARK전표업로드_V93K_아드반</td><td><span class="badge waiting">대기 중</span></td><td>2025-05-14 08:45</td><td>4분</td><td>성공</td><td>매주 월요일 08:45</td><td class="actions"><button onclick="runEdit(this)">▶️</button><button onclick="openEditModal(this)">✏️</button><button>🗑️</button></td></tr>
+            <tr><td>💼 4. ARK전표업로드_상주인원_테크노프로브</td><td><span class="badge error">오류</span></td><td>2025-05-16 10:15</td><td>2분</td><td>실패</td><td>매일 10:15</td><td class="actions"><button onclick="runEdit(this)">▶️</button><button onclick="openEditModal(this)">✏️</button><button>🗑️</button></td></tr>
+            <tr><td>💼 5.ARK전표업로드_상주인원_윌테크놀러지</td><td><span class="badge running">실행 중</span></td><td>2025-05-16 10:30</td><td>진행 중</td><td>-</td><td>매일 10:30</td><td class="actions"><button onclick="runEdit(this)">▶️</button><button onclick="openEditModal(this)">✏️</button><button>🗑️</button></td></tr>
+            <tr><td>💼 6. ARK전표업로드_상주인원_ddi_코리아인스트루먼트</td><td><span class="badge waiting">대기 중</span></td><td>2025-05-15 14:00</td><td>3분</td><td>성공</td><td>매일 14:00</td><td class="actions"><button onclick="runEdit(this)">▶️</button><button onclick="openEditModal(this)">✏️</button><button>🗑️</button></td></tr>
+            <tr><td>💼 7. ARK전표업로드_내부회계_네패스</td><td><span class="badge waiting">대기 중</span></td><td>2025-05-14 11:30</td><td>2분</td><td>성공</td><td>매주 화요일 11:30</td><td class="actions"><button onclick="runEdit(this)">▶️</button><button onclick="openEditModal(this)">✏️</button><button>🗑️</button></td></tr>
+            <tr><td>💼 8. ARK전표업로드_통합렌탈료_AJ네트웍스</td><td><span class="badge done">완료</span></td><td>2025-05-13 13:45</td><td>3분</td><td>성공</td><td>매월 13일 13:45</td><td class="actions"><button onclick="runEdit(this)">▶️</button><button onclick="openEditModal(this)">✏️</button><button>🗑️</button></td></tr>
+            <tr><td>💼 9. ARK전표업로드_CD-36 소자, 냉매 비용</td><td><span class="badge waiting">대기 중</span></td><td>2025-05-15 16:00</td><td>2분</td><td>성공</td><td>매월 15일 16:00</td><td class="actions"><button onclick="runEdit(this)">▶️</button><button onclick="openEditModal(this)">✏️</button><button>🗑️</button></td></tr>
+            <tr><td>💼 10. ARK전표업로드_PC 재료비 반영</td><td><span class="badge error">오류</span></td><td>2025-05-16 09:45</td><td>1분</td><td>실패</td><td>매일 09:45</td><td class="actions"><button onclick="runEdit(this)">▶️</button><button onclick="openEditModal(this)">✏️</button><button>🗑️</button></td></tr>
+            <tr><td>💼 11. ARK전표업로드_전력비 수도광열비 가비용 조정</td><td><span class="badge waiting">대기 중</span></td><td>2025-05-10 14:30</td><td>4분</td><td>성공</td><td>매월 10일 14:30</td><td class="actions"><button onclick="runEdit(this)">▶️</button><button onclick="openEditModal(this)">✏️</button><button>🗑️</button></td></tr>
+            <tr><td>💼 12. ARK전표업로드_2공장 임차료_네패스</td><td><span class="badge done">완료</span></td><td>2025-05-12 10:00</td><td>2분</td><td>성공</td><td>매월 12일 10:00</td><td class="actions"><button onclick="runEdit(this)">▶️</button><button onclick="openEditModal(this)">✏️</button><button>🗑️</button></td></tr>
+            <tr><td>💼 13. ARK전표업로드_임차료_라웨</td><td><span class="badge waiting">대기 중</span></td><td>2025-05-11 11:15</td><td>3분</td><td>성공</td><td>매월 11일 11:15</td><td class="actions"><button onclick="runEdit(this)">▶️</button><button onclick="openEditModal(this)">✏️</button><button>🗑️</button></td></tr>
+            <tr><td>💼 14. ARK전표업로드_리스자산</td><td><span class="badge running">실행 중</span></td><td>2025-05-16 13:20</td><td>진행 중</td><td>-</td><td>매월 16일 13:20</td><td class="actions"><button onclick="runEdit(this)">▶️</button><button onclick="openEditModal(this)">✏️</button><button>🗑️</button></td></tr>
+            <tr><td>💼 15. ARK전표업로드_고객비용 조정1</td><td><span class="badge waiting">대기 중</span></td><td>2025-05-09 15:30</td><td>2분</td><td>성공</td><td>매월 9일 15:30</td><td class="actions"><button onclick="runEdit(this)">▶️</button><button onclick="openEditModal(this)">✏️</button><button>🗑️</button></td></tr>
+            <tr><td>💼 16. ARK전표업로드_고객비용 조정2</td><td><span class="badge done">완료</span></td><td>2025-05-09 16:00</td><td>2분</td><td>성공</td><td>매월 9일 16:00</td><td class="actions"><button onclick="runEdit(this)">▶️</button><button onclick="openEditModal(this)">✏️</button><button>🗑️</button></td></tr>
+            <tr><td>💼 17. ARK전표업로드_공동조직 경비_네패스</td><td><span class="badge waiting">대기 중</span></td><td>2025-05-15 17:00</td><td>3분</td><td>성공</td><td>매월 15일 17:00</td><td class="actions"><button onclick="runEdit(this)">▶️</button><button onclick="openEditModal(this)">✏️</button><button>🗑️</button></td></tr>
+            </tbody>
+        </table>
+      </div>
+    </div>
+
+    
+  </div>
+
+  <div id="editModal">
+    <div class="modal-content">
+      <h3>작업 편집</h3>
+      <input type="text" id="editTaskName" placeholder="작업명">
+      <input type="text" id="editLastRun" placeholder="마지막 실행">
+      <input type="text" id="editDuration" placeholder="소요 시간">
+      <input type="text" id="editStatus" placeholder="상태">
+      <button class="save-btn" onclick="saveEdit()">저장</button>
+      <button class="cancel-btn" onclick="closeEditModal()">취소</button>
+    </div>  </div>
+
+  <script>
+    let currentRow;    // 작업 실행 함수 - 버튼 상태 변경 기능 추가
+    async function runVoucher() {
+      // 전역 로그인 상태 확인
+      if (!isLoggedIn()) {
+        alert('먼저 로그인해주세요.');
+        return;
+      }
+
+      // RPA 실행 버튼 상태 변경
+      const voucherButton = document.querySelector('button[onclick="runVoucher()"]');
+      const originalButtonText = voucherButton.textContent;
+      voucherButton.textContent = "⏳ 실행 중...";
+      voucherButton.disabled = true;
+      
+      try {
+        console.log("EZ-Voucher 실행 시작");
+        
+        // EZ-Voucher 작업 실행
+        const result = await window.electronAPI.runEZVoucher();
+        
+        if (result.success) {
+          alert('작업이 완료되었습니다: ' + result.message);
+        } else {
+          alert('작업 실패: ' + result.error);
+        }
+      } catch (error) {
+        console.error('오류 발생:', error);
+        alert('오류 발생: ' + error.message);
+      } finally {
+        // 버튼 상태 복원
+        voucherButton.textContent = originalButtonText;
+        voucherButton.disabled = false;
+      }
+    }    async function runRPA() {
+    // RPA 실행 버튼 상태 변경
+    const rpaButton = document.querySelector('button[onclick="runRPA()"]');
+    const originalButtonText = rpaButton.textContent;
+    rpaButton.textContent = "⏳ 실행 중...";
+    rpaButton.disabled = true;
+    
+    try {
+        console.log("RPA 실행 버튼 클릭됨");
+        
+        // Electron API가 있는 경우에만 실행 (브라우저에서 직접 열었을 때 대비)
+        if (window.rpaAPI) {
+        const result = await window.rpaAPI.runRPA();
+        if (result.success) {
+            alert("RPA 실행 완료: " + result.data.message);
+        } else {
+            alert("RPA 실행 실패: " + result.error);
+        }
+        } else {
+        // 개발 중 테스트용 알림
+        alert("RPA 실행이 시작되었습니다. (테스트 모드)");
+        }
+    } catch (error) {
+        alert("RPA 실행 중 오류 발생: " + error.message);
+    } finally {
+        // 버튼 상태 복원
+        rpaButton.textContent = originalButtonText;
+        rpaButton.disabled = false;
+    }
+    }    // 선택된 파일 범위 처리
+    async function executeSelectedFiles() {
+      // 전역 로그인 상태 확인
+      if (!isLoggedIn()) {
+        alert('먼저 로그인해주세요.');
+        return;
+      }
+
+      const startNum = parseInt(document.getElementById('startFileNumber').value);
+      const endNum = parseInt(document.getElementById('endFileNumber').value);
+      
+      // 유효성 검사
+      if (!startNum || !endNum) {
+        alert('시작 파일 번호와 끝 파일 번호를 입력해주세요.');
+        return;
+      }
+      
+      if (startNum > endNum) {
+        alert('시작 파일 번호가 끝 파일 번호보다 클 수 없습니다.');
+        return;
+      }
+      
+      if (startNum < 1 || endNum > 99) {
+        alert('파일 번호는 1~99 사이의 값이어야 합니다.');
+        return;
+      }
+      
+      // 전역 로그인 정보 가져오기
+      const loginInfo = getCurrentLoginInfo();
+      
+      // 버튼 상태 변경
+      const button = document.getElementById('executeSelectedBtn');
+      button.textContent = `⏳ 파일 ${startNum}-${endNum} 처리 중...`;
+      button.disabled = true;
+      
+      try {
+        console.log(`파일 범위 처리 시작: ${startNum}-${endNum}`);
+        
+        if (window.electron && window.electron.ipcRenderer) {
+          // Electron 환경에서 실행 - renderer.js에서 결과를 처리함
+          window.electron.ipcRenderer.send('start-file-range-processing', {
+            userId: loginInfo.username,
+            userPw: loginInfo.password,
+            startFileNumber: startNum,
+            endFileNumber: endNum
+          });
+          console.log('파일 범위 처리 IPC 메시지 전송 완료');
+        } else {
+          // 브라우저 테스트 모드에서는 버튼 복원
+          alert(`파일 ${startNum}번부터 ${endNum}번까지 처리가 시작되었습니다. (테스트 모드)`);
+          button.textContent = '선택된 파일 처리';
+          button.disabled = false;
+        }
+      } catch (error) {
+        console.error('파일 범위 처리 오류:', error);
+        alert('파일 범위 처리 중 오류 발생: ' + error.message);
+        button.textContent = '선택된 파일 처리';
+        button.disabled = false;
+      }
+    }    // 단일 파일 처리
+    async function executeSingleFile() {
+      // 전역 로그인 상태 확인
+      if (!isLoggedIn()) {
+        alert('먼저 로그인해주세요.');
+        return;
+      }
+
+      const fileNum = parseInt(document.getElementById('singleFileNumber').value);
+      
+      // 유효성 검사
+      if (!fileNum) {
+        alert('처리할 파일 번호를 입력해주세요.');
+        return;
+      }
+      
+      if (fileNum < 1 || fileNum > 99) {
+        alert('파일 번호는 1~99 사이의 값이어야 합니다.');
+        return;
+      }
+      
+      // 전역 로그인 정보 가져오기
+      const loginInfo = getCurrentLoginInfo();
+      
+      // 버튼 상태 변경
+      const button = document.getElementById('executeSingleBtn');
+      button.textContent = `⏳ 파일 ${fileNum} 처리 중...`;
+      button.disabled = true;        try {
+        console.log(`단일 파일 처리 시작: ${fileNum}`);
+        
+        if (window.electron && window.electron.ipcRenderer) {
+          // Electron 환경에서 실행 - renderer.js에서 결과를 처리함
+          window.electron.ipcRenderer.send('start-single-file-processing', {
+            userId: loginInfo.username,
+            userPw: loginInfo.password,
+            fileNumber: fileNum
+          });
+          console.log('단일 파일 처리 IPC 메시지 전송 완료');
+        } else {
+          // 브라우저 테스트 모드에서는 버튼 복원
+          alert(`파일 ${fileNum}번 처리가 시작되었습니다. (테스트 모드)`);
+          button.textContent = '단일 파일 처리';
+          button.disabled = false;
+        }
+      } catch (error) {
+        console.error('단일 파일 처리 오류:', error);
+        alert('단일 파일 처리 중 오류 발생: ' + error.message);
+        button.textContent = '단일 파일 처리';
+        button.disabled = false;
+      }
+    }    // 로그인 상태와 폴더 선택 상태에 따른 버튼 활성화/비활성화
+    function updateButtonStates() {
+      const userId = document.getElementById('userId').value;
+      const userPw = document.getElementById('userPw').value;
+      const folderPath = document.getElementById('folderPathDisplay').textContent;
+      
+      const isLoggedIn = userId && userPw;
+      const isFolderSelected = folderPath && folderPath !== '폴더가 선택되지 않았습니다.';
+      const canExecute = isLoggedIn && isFolderSelected;
+      
+      // 실행 버튼들 상태 업데이트
+      const executeSelectedBtn = document.getElementById('executeSelectedBtn');
+      const executeSingleBtn = document.getElementById('executeSingleBtn');
+      
+      if (executeSelectedBtn) {
+        executeSelectedBtn.disabled = !canExecute;
+        if (!isLoggedIn) {
+          executeSelectedBtn.title = '먼저 로그인 정보를 입력해주세요.';
+        } else if (!isFolderSelected) {
+          executeSelectedBtn.title = '먼저 작업 폴더를 선택해주세요.';
+        } else {
+          executeSelectedBtn.title = '';
+        }
+      }
+      
+      if (executeSingleBtn) {
+        executeSingleBtn.disabled = !canExecute;
+        if (!isLoggedIn) {
+          executeSingleBtn.title = '먼저 로그인 정보를 입력해주세요.';
+        } else if (!isFolderSelected) {
+          executeSingleBtn.title = '먼저 작업 폴더를 선택해주세요.';
+        } else {
+          executeSingleBtn.title = '';
+        }
+      }
+    }    // 입력 필드 변경 시 버튼 상태 업데이트
+    document.addEventListener('DOMContentLoaded', function() {
+      const userIdInput = document.getElementById('userId');
+      const userPwInput = document.getElementById('userPw');
+      
+      if (userIdInput && userPwInput) {
+        userIdInput.addEventListener('input', updateButtonStates);
+        userPwInput.addEventListener('input', updateButtonStates);
+        
+        // 초기 상태 설정
+        updateButtonStates();
+      }
+    });
+
+    function highlightRows() {
+      const keyword = document.getElementById("searchBox").value.toLowerCase();
+      const rows = document.querySelectorAll("#taskTable tbody tr");
+      rows.forEach(row => {
+        const taskName = row.cells[0].textContent.toLowerCase();
+        row.classList.remove("highlight");
+        if (keyword && taskName.includes(keyword)) {
+          row.classList.add("highlight");
+        }
+      });
+    }
+
+    function openEditModal(button) {
+      currentRow = button.closest("tr");
+      document.getElementById("editTaskName").value = currentRow.cells[0].innerText;
+      document.getElementById("editStatus").value = currentRow.cells[1].innerText;
+      document.getElementById("editLastRun").value = currentRow.cells[2].innerText;
+      document.getElementById("editDuration").value = currentRow.cells[3].innerText;
+      document.getElementById("editModal").style.display = "flex";
+    }
+
+    function closeEditModal() {
+      document.getElementById("editModal").style.display = "none";
+    }    function saveEdit() {
+      currentRow.cells[0].innerText = document.getElementById("editTaskName").value;
+      currentRow.cells[1].innerHTML = `<span class='badge'>${document.getElementById("editStatus").value}</span>`;
+      currentRow.cells[2].innerText = document.getElementById("editLastRun").value;
+      currentRow.cells[3].innerText = document.getElementById("editDuration").value;
+      closeEditModal();
+    }    // 폴더 선택 함수
+    async function selectFolder() {
+      try {
+        console.log('폴더 선택 버튼 클릭됨');
+        
+        if (window.electronAPI) {
+          // Electron 환경에서 실행
+          const result = await window.electronAPI.selectFolder();
+          console.log('폴더 선택 결과:', result);
+          
+          if (result.success) {
+            document.getElementById('folderPathDisplay').textContent = result.path;
+            document.getElementById('folderPathDisplay').style.color = '#27ae60';
+            
+            // 폴더가 선택되면 실행 버튼들 활성화
+            updateButtonStates();
+            
+            alert('폴더가 성공적으로 선택되었습니다: ' + result.path);
+          } else {
+            alert('폴더 선택이 취소되었습니다.');
+          }
+        } else if (window.electron && window.electron.ipcRenderer) {
+          // 호환성을 위한 fallback
+          const result = await window.electron.ipcRenderer.invoke('select-folder');
+          console.log('폴더 선택 결과:', result);
+          
+          if (result.success) {
+            document.getElementById('folderPathDisplay').textContent = result.path;
+            document.getElementById('folderPathDisplay').style.color = '#27ae60';
+            
+            // 폴더가 선택되면 실행 버튼들 활성화
+            updateButtonStates();
+            
+            alert('폴더가 성공적으로 선택되었습니다: ' + result.path);
+          } else {
+            alert('폴더 선택이 취소되었습니다.');
+          }
+        } else {
+          // 브라우저 환경에서는 테스트 모드
+          alert('폴더 선택 기능은 Electron 앱에서만 동작합니다.');
+        }      } catch (error) {
+        console.error('폴더 선택 오류:', error);
+        alert('폴더 선택 중 오류가 발생했습니다: ' + error.message);
+      }    }    // 전체 페이지 스크린 캡처 함수
+    async function captureFullPage() {
+      const captureBtn = document.querySelector('.screen-capture-btn');
+      const captureIcon = document.getElementById('captureIcon');
+      
+      // 버튼 상태 변경
+      const originalIcon = captureIcon.textContent;
+      captureIcon.textContent = '⏳';
+      captureBtn.disabled = true;
+      captureBtn.style.opacity = '0.7';
+      
+      try {
+        console.log('전체 페이지 스크린 캡처 시작');
+        
+        if (window.electronAPI && window.electronAPI.captureFullPage) {
+          // Electron 환경에서 실행
+          const result = await window.electronAPI.captureFullPage();
+          
+          if (result.success) {
+            // 성공 시 잠깐 체크 아이콘 표시
+            captureIcon.textContent = '✅';
+            
+            // 상세한 성공 메시지 표시
+            const message = result.message || '전체 페이지 스크린샷이 저장되었습니다!';
+            const dimensions = result.dimensions;
+            let detailMsg = `${message}\n\n경로: ${result.path}`;
+            
+            if (dimensions) {
+              detailMsg += `\n크기: ${dimensions.width}x${dimensions.height}px`;
+              if (dimensions.steps) {
+                detailMsg += `\n캡처 단계: ${dimensions.steps}단계`;
+              }
+              if (dimensions.scalingFactor) {
+                detailMsg += `\n스케일링: ${dimensions.scalingFactor.toFixed(2)}x`;
+              }
+            }
+            
+            alert(detailMsg);
+            
+            setTimeout(() => {
+              captureIcon.textContent = originalIcon;
+            }, 2000);
+          } else {
+            captureIcon.textContent = '❌';
+            alert('스크린샷 저장 실패: ' + (result.error || '알 수 없는 오류'));
+            setTimeout(() => {
+              captureIcon.textContent = originalIcon;
+            }, 2000);
+          }
+        } else if (window.electron && window.electron.ipcRenderer) {
+          // 호환성을 위한 fallback
+          const result = await window.electron.ipcRenderer.invoke('capture-full-page');
+          
+          if (result.success) {
+            captureIcon.textContent = '✅';
+            const message = result.message || '전체 페이지 스크린샷이 저장되었습니다!';
+            alert(`${message}\n경로: ${result.path}`);
+            setTimeout(() => {
+              captureIcon.textContent = originalIcon;
+            }, 2000);
+          } else {
+            captureIcon.textContent = '❌';
+            alert('스크린샷 저장 실패: ' + (result.error || '알 수 없는 오류'));
+            setTimeout(() => {
+              captureIcon.textContent = originalIcon;
+            }, 2000);
+          }
+        } else {
+          // 브라우저 환경에서는 html2canvas 사용
+          await captureWithHtml2Canvas();
+        }
+        
+      } catch (error) {
+        console.error('스크린 캡처 오류:', error);
+        captureIcon.textContent = '❌';
+        alert('스크린 캡처 중 오류 발생: ' + error.message);
+        setTimeout(() => {
+          captureIcon.textContent = originalIcon;
+        }, 2000);
+      } finally {
+        // 버튼 상태 복원
+        captureBtn.disabled = false;
+        captureBtn.style.opacity = '1';
+      }
+    }// 브라우저 환경에서 html2canvas를 사용한 전체 페이지 캡처
+    async function captureWithHtml2Canvas() {
+      try {
+        // html2canvas 라이브러리가 로드되어 있는지 확인
+        if (typeof html2canvas === 'undefined') {
+          // html2canvas 동적 로드
+          const script = document.createElement('script');
+          script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+          document.head.appendChild(script);
+          
+          await new Promise((resolve, reject) => {
+            script.onload = resolve;
+            script.onerror = reject;
+          });
+        }
+        
+        // 현재 스크롤 위치 저장
+        const originalScrollX = window.scrollX;
+        const originalScrollY = window.scrollY;
+        
+        // 페이지를 맨 위로 스크롤
+        window.scrollTo(0, 0);
+        
+        // 전체 페이지 캡처 (스크롤 영역 포함)
+        const canvas = await html2canvas(document.body, {
+          height: document.body.scrollHeight,
+          width: document.body.scrollWidth,
+          useCORS: true,
+          scale: 1,
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: document.body.scrollWidth,
+          windowHeight: document.body.scrollHeight
+        });
+        
+        // 원래 스크롤 위치로 복원
+        window.scrollTo(originalScrollX, originalScrollY);
+        
+        // 파일명 생성
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+        const fileName = `screenshot_${timestamp}.png`;
+        
+        // 이미지 다운로드
+        const link = document.createElement('a');
+        link.download = fileName;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        
+        // 성공 메시지
+        const captureIcon = document.getElementById('captureIcon');
+        captureIcon.textContent = '✅';
+        setTimeout(() => {
+          captureIcon.textContent = '📷';
+        }, 1500);
+        
+        alert(`전체 페이지 스크린샷이 다운로드되었습니다!\n파일명: ${fileName}\n크기: ${canvas.width}x${canvas.height}px`);
+        
+      } catch (error) {
+        throw new Error('브라우저 전체 페이지 캡처 실패: ' + error.message);
+      }
+    }
+
+    // 다크모드 토글 함수
+    function toggleDarkMode() {
+      const body = document.body;
+      const darkModeIcon = document.getElementById('darkModeIcon');
+      
+      body.classList.toggle('dark-mode');
+      
+      // 아이콘 변경
+      if (body.classList.contains('dark-mode')) {
+        darkModeIcon.textContent = '☀️';
+        localStorage.setItem('darkMode', 'enabled');
+      } else {
+        darkModeIcon.textContent = '🌙';
+        localStorage.setItem('darkMode', 'disabled');
+      }
+    }
+
+    // 페이지 로드 시 다크모드 설정 복원
+    function initializeDarkMode() {
+      const darkMode = localStorage.getItem('darkMode');
+      const body = document.body;
+      const darkModeIcon = document.getElementById('darkModeIcon');
+      
+      if (darkMode === 'enabled') {
+        body.classList.add('dark-mode');
+        darkModeIcon.textContent = '☀️';
+      } else {
+        darkModeIcon.textContent = '🌙';
+      }
+    }    // 버튼 상태 업데이트 함수 (로그인 상태에 따라)
+    function updateButtonStates() {
+      const isUserLoggedIn = isLoggedIn();
+      
+      // 주요 RPA 버튼들
+      const buttons = {
+        'executeSelectedBtn': document.getElementById('executeSelectedBtn'),
+        'executeSingleBtn': document.getElementById('executeSingleBtn'),
+        'voucherBtn': document.querySelector('button[onclick="runVoucher()"]')
+      };
+      
+      Object.values(buttons).forEach(button => {
+        if (button) {
+          if (!isUserLoggedIn) {
+            button.disabled = true;
+            button.style.opacity = '0.5';
+            button.title = '로그인이 필요합니다';
+          } else {
+            button.style.opacity = '1';
+            button.title = '';
+            // 폴더가 선택된 경우에만 활성화
+            if (button.id === 'executeSelectedBtn' || button.id === 'executeSingleBtn') {
+              button.disabled = !window.selectedFolderPath;
+            } else {
+              button.disabled = false;
+            }
+          }
+        }
+      });
+    }
+
+    // 페이지 로드 완료 시 다크모드 초기화
+    document.addEventListener('DOMContentLoaded', function() {
+      // 로그인 시스템 초기화
+      initializeLoginSystem();
+      
+      initializeDarkMode();
+      
+      // 초기 버튼 상태 설정
+      updateButtonStates();
+    });    // 전역에서 접근 가능하도록 window 객체에 할당
+    window.updateButtonStates = updateButtonStates;
+    window.executeSelectedFiles = executeSelectedFiles;
+    window.executeSingleFile = executeSingleFile;
+    window.selectFolder = selectFolder;
+    window.toggleDarkMode = toggleDarkMode;
+    window.captureFullPage = captureFullPage;
+    
+  </script>
+  
+  <!-- renderer.js 스크립트 포함 -->
+  <script src="renderer.js"></script>
+</body>
+</html>
