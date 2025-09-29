@@ -810,7 +810,34 @@
     <div class="container"><!-- 페이지 헤더 -->
       <div class="section">
         <h2>📄 매입송장 처리</h2>
-        <p>매입송장 자동 처리를 진행합니다.</p>        <!-- A열 값 (valueA) 설정 섹션 -->
+        <p>매입송장 자동 처리를 진행합니다.</p>
+
+        <!-- 년도&월 선택 섹션 -->
+        <div class="input-group">
+          <h3>조회 기간 설정</h3>
+          <div class="form-row">
+            <label for="monthYearSelect">년도 & 월:</label>
+            <select id="monthYearSelect" onchange="updateDateRange()">
+              <option value="2025-01">2025년 1월</option>
+              <option value="2025-02">2025년 2월</option>
+              <option value="2025-03">2025년 3월</option>
+              <option value="2025-04">2025년 4월</option>
+              <option value="2025-05">2025년 5월</option>
+              <option value="2025-06">2025년 6월</option>
+              <option value="2025-07">2025년 7월</option>
+              <option value="2025-08">2025년 8월</option>
+              <option value="2025-09">2025년 9월</option>
+              <option value="2025-10">2025년 10월</option>
+              <option value="2025-11">2025년 11월</option>
+              <option value="2025-12">2025년 12월</option>
+            </select>
+            <span id="selectedDateRange" style="margin-left: 15px; color: #666; font-size: 14px;">
+              선택된 기간: 2025년 9월 1일 ~ 2025년 9월 30일
+            </span>
+          </div>
+        </div>
+
+        <!-- A열 값 (valueA) 설정 섹션 -->
         <div class="input-group">
           <h3>단일 & 다중 모드 선택</h3>
           
@@ -917,6 +944,92 @@
   </div>
 
   <script>
+    // 현재 날짜 가져오기
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1; // 0-based이므로 +1
+
+    // 글로벌 변수: 선택된 년월 정보 (동적 현재월로 초기화)
+    let selectedYearMonth = {
+      year: currentYear,
+      month: currentMonth,
+      fromDate: null,
+      toDate: null
+    };
+
+    // 년도&월 선택 시 호출되는 함수
+    function updateDateRange() {
+      const selectElement = document.getElementById('monthYearSelect');
+      const selectedValue = selectElement.value; // 예: "2025-09"
+
+      if (!selectedValue) return;
+
+      const [year, month] = selectedValue.split('-');
+      const yearNum = parseInt(year);
+      const monthNum = parseInt(month);
+
+      // 글로벌 변수 업데이트
+      selectedYearMonth.year = yearNum;
+      selectedYearMonth.month = monthNum;
+
+      // 해당 월의 첫날과 마지막날 계산
+      const firstDay = new Date(yearNum, monthNum - 1, 1);
+      const lastDay = new Date(yearNum, monthNum, 0);
+
+      // FromDate, ToDate 형식으로 저장 (M/d/YYYY)
+      selectedYearMonth.fromDate = `${monthNum}/1/${yearNum}`;
+      selectedYearMonth.toDate = `${monthNum}/${lastDay.getDate()}/${yearNum}`;
+
+      // 화면 표시 텍스트 업데이트
+      const dateRangeSpan = document.getElementById('selectedDateRange');
+      if (dateRangeSpan) {
+        const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월',
+                           '7월', '8월', '9월', '10월', '11월', '12월'];
+        const monthName = monthNames[monthNum - 1];
+        dateRangeSpan.textContent = `선택된 기간: ${yearNum}년 ${monthName} 1일 ~ ${yearNum}년 ${monthName} ${lastDay.getDate()}일`;
+      }
+
+      console.log('선택된 기간 업데이트:', {
+        year: yearNum,
+        month: monthNum,
+        fromDate: selectedYearMonth.fromDate,
+        toDate: selectedYearMonth.toDate
+      });
+
+      // 백엔드에 선택된 날짜 정보 전달 (Electron API가 있는 경우)
+      if (window.electronAPI && window.electronAPI.setSelectedDateRange) {
+        window.electronAPI.setSelectedDateRange({
+          year: yearNum,
+          month: monthNum,
+          fromDate: selectedYearMonth.fromDate,
+          toDate: selectedYearMonth.toDate
+        });
+      }
+    }
+
+    // 페이지 로드 시 초기 날짜 범위 설정
+    function initializeDateRange() {
+      // 현재월을 콤보박스에서 선택
+      const selectElement = document.getElementById('monthYearSelect');
+      const currentValue = `${currentYear}-${currentMonth.toString().padStart(2, '0')}`;
+
+      // 현재월에 해당하는 option을 selected로 설정
+      if (selectElement) {
+        const targetOption = selectElement.querySelector(`option[value="${currentValue}"]`);
+        if (targetOption) {
+          // 모든 옵션의 selected 속성 제거
+          Array.from(selectElement.options).forEach(option => option.selected = false);
+          // 현재월 옵션만 selected
+          targetOption.selected = true;
+          console.log(`동적으로 현재월 선택됨: ${currentValue} (${currentYear}년 ${currentMonth}월)`);
+        } else {
+          console.warn(`현재월 옵션을 찾을 수 없음: ${currentValue}`);
+        }
+      }
+
+      updateDateRange();
+    }
+
     // 파일 관리
     // 전체 페이지 스크린 캡처 함수
     async function captureFullPage() {
@@ -1330,8 +1443,11 @@
       
       // 로그인 시스템 초기화
       initializeLoginSystem();
-      
+
       initializeDarkMode();
+
+      // 날짜 범위 초기화
+      initializeDateRange();
         // 버튼 상태 초기화      updateButtonStates();
       
       // 다중모드 진행 상황 업데이트 리스너 등록

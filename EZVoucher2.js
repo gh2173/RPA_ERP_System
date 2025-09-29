@@ -300,6 +300,19 @@ let globalCredentials = {
   password: ''
 };
 
+// 현재 날짜 가져오기
+const now = new Date();
+const currentYear = now.getFullYear();
+const currentMonth = now.getMonth() + 1; // 0-based이므로 +1
+
+// 글로벌 선택된 날짜 범위 정보 저장 객체 (동적 현재월로 초기화)
+let globalDateRange = {
+  year: currentYear,
+  month: currentMonth, // 기본값: 동적 현재월
+  fromDate: null,
+  toDate: null
+};
+
 // 로그인 처리 함수 (EZVoucher.js와 동일한 ADFS 전용 로직)
 async function handleLogin(page, credentials) {
   try {
@@ -345,6 +358,20 @@ function setCredentials(username, password) {
 // 글로벌 로그인 정보 반환
 function getCredentials() {
   return globalCredentials;
+}
+
+// 글로벌 선택된 날짜 범위 정보 설정
+function setSelectedDateRange(dateRangeInfo) {
+  globalDateRange.year = dateRangeInfo.year;
+  globalDateRange.month = dateRangeInfo.month;
+  globalDateRange.fromDate = dateRangeInfo.fromDate;
+  globalDateRange.toDate = dateRangeInfo.toDate;
+  logger.info(`매입송장 처리용 날짜 범위가 설정되었습니다: ${dateRangeInfo.year}년 ${dateRangeInfo.month}월 (${dateRangeInfo.fromDate} ~ ${dateRangeInfo.toDate})`);
+}
+
+// 글로벌 선택된 날짜 범위 정보 반환
+function getSelectedDateRange() {
+  return globalDateRange;
 }
 
 /**
@@ -942,16 +969,21 @@ async function navigateToReceivingInquiry(page) {
     logger.info(`설정할 FromDate: ${fromDate}`);
     */
     
-    // Test 임시 수정
-    // 현재 날짜에서 지난 월의 첫날 계산
-    const now = new Date();
-    // 지난달 계산 (현재 월에서 1을 뺌)
-    const lastMonth = now.getMonth();
-    const year = lastMonth === 0 ? now.getFullYear() -1 : now.getFullYear();
-    const month = lastMonth === 0 ? 12 : lastMonth;
+    // 사용자 선택된 날짜 범위 사용
+    let fromDate;
 
-    // 지난달 첫날 설정
-    const fromDate = `${month}/1/${year}`; // M/d/YYYY 형태
+    // globalDateRange에서 fromDate가 이미 설정된 경우 사용
+    if (globalDateRange.fromDate) {
+      fromDate = globalDateRange.fromDate;
+      logger.info(`[UI에서 설정된 값 사용] FromDate: ${fromDate} (${globalDateRange.year}년 ${globalDateRange.month}월)`);
+    } else {
+      // 기본값: 현재월의 첫날 (fallback)
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+      fromDate = `${currentMonth}/1/${currentYear}`;
+      logger.info(`[기본값 사용] FromDate: ${fromDate} (현재월)`);
+    }
 
     logger.info(`설정할 FromDate: ${fromDate}`);
     
@@ -1011,10 +1043,23 @@ async function navigateToReceivingInquiry(page) {
     logger.info(`설정할 ToDate: ${toDate}`);
     */
    
-    // Test 임시 수정
-    // 지난달의 마지막 날 계산
-    const lastDay = new Date(year, month, 0).getDate();
-    const toDate = `${month}/${lastDay}/${year}`; // M/d/YYYY 형태
+    // 사용자 선택된 날짜 범위 사용
+    let toDate;
+
+    // globalDateRange에서 toDate가 이미 설정된 경우 사용
+    if (globalDateRange.toDate) {
+      toDate = globalDateRange.toDate;
+      logger.info(`[UI에서 설정된 값 사용] ToDate: ${toDate} (${globalDateRange.year}년 ${globalDateRange.month}월)`);
+    } else {
+      // 기본값: 현재월의 마지막날 (fallback)
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+      const lastDay = new Date(currentYear, currentMonth, 0).getDate();
+      toDate = `${currentMonth}/${lastDay}/${currentYear}`;
+      logger.info(`[기본값 사용] ToDate: ${toDate} (현재월)`);
+    }
+
     logger.info(`설정할 ToDate: ${toDate}`);
     
 
@@ -6037,6 +6082,8 @@ async function processMultipleValueA(valueArray, credentials) {
 module.exports = {
   setCredentials,
   getCredentials,
+  setSelectedDateRange,
+  getSelectedDateRange,
   connectToD365,
   connectToD365WithProgress,
   processInvoice,
