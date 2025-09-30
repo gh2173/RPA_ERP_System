@@ -294,6 +294,25 @@ ipcMain.handle('process-invoice', async () => {
   }
 });
 
+// 날짜 범위 설정 핸들러
+ipcMain.handle('set-selected-date-range', async (event, dateRangeInfo) => {
+  try {
+    console.log(`[MAIN] 날짜 범위 설정 요청:`, dateRangeInfo);
+
+    // EZVoucher2에 날짜 범위 설정
+    if (ezVoucher2 && ezVoucher2.setSelectedDateRange) {
+      ezVoucher2.setSelectedDateRange(dateRangeInfo);
+      console.log(`[MAIN] 날짜 범위 설정 완료: ${dateRangeInfo.year}년 ${dateRangeInfo.month}월`);
+      return { success: true, message: `날짜 범위가 설정되었습니다: ${dateRangeInfo.year}년 ${dateRangeInfo.month}월` };
+    } else {
+      throw new Error('EZVoucher2 모듈의 setSelectedDateRange 함수를 찾을 수 없습니다.');
+    }
+  } catch (error) {
+    console.error('[MAIN] 날짜 범위 설정 오류:', error);
+    return { success: false, error: error.message };
+  }
+});
+
 // 전체 페이지 스크린샷 캡처 IPC 핸들러 (진행상황 로그 및 크기 제한 추가)
 ipcMain.handle('capture-full-page', async () => {
   try {

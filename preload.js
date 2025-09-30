@@ -16,7 +16,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   
   // 다중 A열 값 처리를 위한 API
   processMultipleValueA: (valueArray) => ipcRenderer.invoke('process-multiple-value-a', valueArray),
-  
+
+  // 날짜 범위 설정을 위한 API
+  setSelectedDateRange: (dateRangeInfo) => ipcRenderer.invoke('set-selected-date-range', dateRangeInfo),
+
   // 다중모드 진행 상황 업데이트 리스너
   onMultipleModeProgress: (callback) => ipcRenderer.on('multiple-mode-progress', (_, data) => callback(data)),
   

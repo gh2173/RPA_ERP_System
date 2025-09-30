@@ -972,6 +972,9 @@ async function navigateToReceivingInquiry(page) {
     // 사용자 선택된 날짜 범위 사용
     let fromDate;
 
+    // 디버깅: globalDateRange 현재 상태 확인
+    logger.info(`[DEBUG] 현재 globalDateRange 상태:`, JSON.stringify(globalDateRange, null, 2));
+
     // globalDateRange에서 fromDate가 이미 설정된 경우 사용
     if (globalDateRange.fromDate) {
       fromDate = globalDateRange.fromDate;
