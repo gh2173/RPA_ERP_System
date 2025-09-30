@@ -12,7 +12,13 @@
 
     "start": "electron .",
 
-    "build": "electron-builder"
+    "build": "electron-builder",
+
+    "build-win": "electron-builder --win",
+
+    "build-mac": "electron-builder --mac",
+
+    "dist": "npm run build"
 
   },
 
@@ -72,51 +78,19 @@
 
     },
 
-    "files": [
-
-      "**/*",
-
-      "EZVoucher.js",
-
-      "EZVoucher2.js",
-
-      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
-
-      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
-
-      "!**/node_modules/*.d.ts",
-
-      "!**/node_modules/.bin"
-
-    ],
+    "asar": true,
 
     "win": {
 
-      "target": [
+      "target": "nsis",
 
-        {
+      "sign": null,
 
-          "target": "nsis",
+      "signtool": null,
 
-          "arch": ["x64"]
+      "certificateFile": null,
 
-        },
-
-        {
-
-          "target": "portable",
-
-          "arch": ["x64"]
-
-        }
-
-      ],
-
-      "icon": "ERP_RPA아이콘.png",
-
-      "publisherName": "네패스",
-
-      "verifyUpdateCodeSignature": false
+      "certificatePassword": null
 
     },
 
@@ -124,23 +98,17 @@
 
       "oneClick": false,
 
-      "allowToChangeInstallationDirectory": true,
-
-      "allowElevation": true,
-
-      "createDesktopShortcut": true,
-
-      "createStartMenuShortcut": true,
-
-      "shortcutName": "매입송장 RPA"
+      "allowToChangeInstallationDirectory": true
 
     },
 
-    "portable": {
+    "extraMetadata": {
 
-      "artifactName": "매입송장RPA-${version}-portable.exe"
+      "main": "main.js"
 
-    }
+    },
+
+    "publish": null
 
   }
 
