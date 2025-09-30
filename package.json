@@ -1,116 +1,159 @@
 {
-
+ 
   "name": "tax-invoice-rpa",
-
-  "version": "1.0.0",
-
+ 
+  "version": "2.2.1",
+ 
   "description": "회계 자동화 RPA 프로그램",
-
+ 
   "main": "main.js",
-
+ 
   "scripts": {
-
+ 
     "start": "electron .",
-
+ 
     "build": "electron-builder",
-
+ 
     "build-win": "electron-builder --win",
-
+ 
     "build-mac": "electron-builder --mac",
-
+ 
     "dist": "npm run build"
-
+ 
   },
-
+ 
   "keywords": [
-
+ 
     "electron",
-
+ 
     "rpa",
-
+ 
     "automation",
-
+ 
     "tax",
-
+ 
     "invoice"
-
+ 
   ],
-
+ 
   "author": "네패스",
-
+ 
   "license": "ISC",
-
+ 
   "dependencies": {
-
+ 
     "clipboardy": "^4.0.0",
-
+ 
     "exceljs": "^4.4.0",
-
+ 
     "puppeteer": "^21.5.0",
-
+ 
     "puppeteer-extra": "^3.3.6",
-
+ 
     "puppeteer-extra-plugin-stealth": "^2.11.2",
-
+ 
     "winston": "^3.11.0",
-
+ 
     "xlsx": "^0.18.5"
-
+ 
   },
-
+ 
   "devDependencies": {
-
+ 
     "electron": "^25.9.8",
-
+ 
     "electron-builder": "^24.6.4"
-
+ 
   },
-
+ 
   "build": {
-
+ 
     "appId": "com.nepes.tax-invoice-rpa",
-
+ 
     "productName": "매입송장 RPA 처리기",
-
+ 
     "directories": {
-
+ 
       "output": "dist"
-
+ 
     },
-
+ 
+    "files": [
+ 
+      "**/*",
+ 
+      "EZVoucher.js",
+ 
+      "EZVoucher2.js",
+ 
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+ 
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+ 
+      "!**/node_modules/*.d.ts",
+ 
+      "!**/node_modules/.bin",
+ 
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+ 
+      "!.editorconfig",
+ 
+      "!**/._*",
+ 
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+ 
+      "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+ 
+      "!**/{appveyor.yml,.travis.yml,circle.yml}",
+ 
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
+ 
+    ],
+ 
     "asar": true,
-
+ 
+    "asarUnpack": [
+ 
+      "**/node_modules/puppeteer/**/*"
+ 
+    ],
+ 
+    "compression": "maximum",
+ 
     "win": {
-
+ 
       "target": "nsis",
-
-      "sign": null,
-
-      "signtool": null,
-
-      "certificateFile": null,
-
-      "certificatePassword": null
-
+ 
+      "icon": "ERP_RPA아이콘.png",
+ 
+      "sign": null
+ 
     },
-
+ 
     "nsis": {
-
+ 
       "oneClick": false,
-
-      "allowToChangeInstallationDirectory": true
-
+ 
+      "allowToChangeInstallationDirectory": true,
+ 
+      "allowElevation": true,
+ 
+      "createDesktopShortcut": true,
+ 
+      "createStartMenuShortcut": true,
+ 
+      "shortcutName": "매입송장 RPA"
+ 
     },
-
-    "extraMetadata": {
-
-      "main": "main.js"
-
-    },
-
-    "publish": null
-
+ 
+    "portable": {
+ 
+      "artifactName": "매입송장RPA-${version}-portable.exe"
+ 
+    }
+ 
   }
-
+ 
 }
+ 
  
